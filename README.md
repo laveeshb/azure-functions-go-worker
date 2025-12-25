@@ -61,7 +61,7 @@ The worker communicates with the Azure Functions Host via gRPC using the standar
 
 ```bash
 # Clone the repository
-git clone https://github.com/Azure/azure-functions-go-worker.git
+git clone https://github.com/laveeshb/azure-functions-go-worker.git
 cd azure-functions-go-worker
 
 # Generate protobuf code (if needed)
@@ -85,17 +85,24 @@ Then visit: http://localhost:7071/api/HttpTrigger?name=Gopher
 
 ## Deploy to Azure
 
-A complete deployable sample with one-click Azure deployment is available:
+A complete deployable sample with Azure deployment scripts is available:
+
+```powershell
+# Windows
+cd samples/hello-world
+.\deploy.ps1 -ResourceGroupName "rg-gofunc" -Location "eastus"
+```
 
 ```bash
+# Linux/Mac
 cd samples/hello-world
-azd up
+./deploy.sh -g "rg-gofunc" -l "eastus"
 ```
 
 See [samples/hello-world/README.md](samples/hello-world/README.md) for full deployment documentation including:
-- Azure Developer CLI (azd) deployment
-- Alternative deployment scripts (PowerShell/Bash)
-- Infrastructure as Code (Bicep templates)
+- Local development setup
+- Cross-compilation for Azure
+- Manual deployment steps
 
 ## Project Structure
 

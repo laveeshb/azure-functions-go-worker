@@ -12,7 +12,27 @@ A complete, deployable Azure Functions application written in Go using Custom Ha
 
 ## Quick Start
 
-### Option 1: One-Click Deploy with Azure Developer CLI (azd)
+### Option 1: Deploy with Azure CLI Scripts (Recommended)
+
+These scripts handle cross-compilation and deployment automatically:
+
+```powershell
+# PowerShell (Windows)
+cd samples/hello-world
+.\deploy.ps1 -ResourceGroupName "rg-gofunc" -Location "eastus"
+```
+
+```bash
+# Bash (Linux/Mac)
+cd samples/hello-world
+./deploy.sh -g "rg-gofunc" -l "eastus"
+```
+
+These scripts auto-generate unique names for the Function App and Storage Account.
+
+### Option 2: Deploy with Azure Developer CLI (azd)
+
+> **Note:** Requires azd version 1.10+ with Go language support.
 
 ```bash
 # Login to Azure
@@ -30,30 +50,6 @@ azd up
 | Environment name | Unique name for this deployment | `hello-world-dev` |
 | Azure Subscription | Select from your subscriptions | (interactive) |
 | Azure Location | Region to deploy to | `eastus` |
-
-That's it! The command will:
-1. Prompt for environment name, subscription, and location
-2. Create a resource group
-3. Deploy Azure Storage, App Service Plan, Application Insights
-4. Build your Go code for Linux (cross-compilation)
-5. Package the binary with function definitions
-6. Deploy everything to Azure
-
-### Option 2: Deploy with Azure CLI Scripts
-
-```powershell
-# PowerShell (Windows)
-cd samples/hello-world
-.\deploy.ps1 -ResourceGroupName "rg-gofunc" -Location "eastus"
-```
-
-```bash
-# Bash (Linux/Mac)
-cd samples/hello-world
-./deploy.sh --resource-group "rg-gofunc" --location "eastus"
-```
-
-These scripts auto-generate unique names for the Function App and Storage Account.
 
 ### Local Development
 
