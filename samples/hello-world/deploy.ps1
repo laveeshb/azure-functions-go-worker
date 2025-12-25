@@ -1,5 +1,5 @@
-# Azure Functions Go Worker - Simple Deploy Script
-# Alternative to azd for quick deployment using Azure CLI
+# Azure Functions Go Worker - Deploy Script
+# Deploys a Go Function App to Azure using Azure CLI
 param(
     [Parameter(Mandatory=$true)]
     [string]$ResourceGroupName,
