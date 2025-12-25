@@ -1,8 +1,0 @@
-{
-  "resourcesResourceGroups": "rg-",
-  "webSitesFunctions": "func-",
-  "webServerFarms": "plan-",
-  "storageStorageAccounts": "st",
-  "insightsComponents": "appi-",
-  "operationalInsightsWorkspaces": "log-"
-}
