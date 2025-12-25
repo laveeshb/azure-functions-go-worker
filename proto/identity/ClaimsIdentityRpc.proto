@@ -6,7 +6,7 @@
 syntax = "proto3";
 
 option java_package = "com.microsoft.azure.functions.rpc.messages";
-option go_package = "github.com/Azure/azure-functions-go-worker/internal/rpc/proto";
+option go_package = "github.com/laveeshb/azure-functions-go-worker/internal/rpc/proto";
 
 import "shared/NullableTypes.proto";
 

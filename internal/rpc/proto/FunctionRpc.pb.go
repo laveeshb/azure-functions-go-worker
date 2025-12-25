@@ -4613,8 +4613,8 @@ const file_FunctionRpc_proto_rawDesc = "" +
 	"\x12\x15\n" +
 	"\x11collection_sint64\x10\v2|\n" +
 	"\vFunctionRpc\x12m\n" +
-	"\vEventStream\x12+.AzureFunctionsRpcMessages.StreamingMessage\x1a+.AzureFunctionsRpcMessages.StreamingMessage\"\x00(\x010\x01B\xab\x01\n" +
-	"*com.microsoft.azure.functions.rpc.messagesB\rFunctionProtoP\x01Z=github.com/Azure/azure-functions-go-worker/internal/rpc/proto\xaa\x02,Microsoft.Azure.WebJobs.Script.Grpc.Messagesb\x06proto3"
+	"\vEventStream\x12+.AzureFunctionsRpcMessages.StreamingMessage\x1a+.AzureFunctionsRpcMessages.StreamingMessage\"\x00(\x010\x01B\xae\x01\n" +
+	"*com.microsoft.azure.functions.rpc.messagesB\rFunctionProtoP\x01Z@github.com/laveeshb/azure-functions-go-worker/internal/rpc/proto\xaa\x02,Microsoft.Azure.WebJobs.Script.Grpc.Messagesb\x06proto3"
 
 var (
 	file_FunctionRpc_proto_rawDescOnce sync.Once

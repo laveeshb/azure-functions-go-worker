@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 // Package registry provides function registration and lookup functionality.
 package registry
 
@@ -12,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	pb "github.com/Azure/azure-functions-go-worker/internal/rpc/proto"
+	pb "github.com/laveeshb/azure-functions-go-worker/internal/rpc/proto"
 )
 
 // captureStackTrace captures the current stack trace, skipping runtime/panic frames.

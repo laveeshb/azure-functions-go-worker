@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 package rpc
 
 import (
@@ -9,7 +6,7 @@ import (
 	"log"
 	"runtime"
 
-	pb "github.com/Azure/azure-functions-go-worker/internal/rpc/proto"
+	pb "github.com/laveeshb/azure-functions-go-worker/internal/rpc/proto"
 )
 
 const (

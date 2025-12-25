@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 // Package integration contains integration tests that simulate the Azure Functions Host.
 package integration
 
@@ -11,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	pb "github.com/Azure/azure-functions-go-worker/internal/rpc/proto"
+	pb "github.com/laveeshb/azure-functions-go-worker/internal/rpc/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 // Package main demonstrates a simple Azure Functions app with an HTTP trigger.
 //
 // To use this example:
@@ -14,7 +11,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-functions-go-worker/pkg/azfunc"
+	"github.com/laveeshb/azure-functions-go-worker/pkg/azfunc"
 )
 
 func init() {

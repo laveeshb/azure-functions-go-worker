@@ -2,7 +2,19 @@
 
 A native Go language worker for Azure Functions, enabling first-class Go support (not Custom Handlers).
 
-> ⚠️ **Early Development** - This project is in active development and not yet ready for production use.
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Getting Started](#getting-started)
+- [Deploy to Azure](#deploy-to-azure)
+- [Project Structure](#project-structure)
+- [API Reference](#api-reference)
+- [Roadmap](#roadmap)
+- [Development](#development)
+- [Related Projects](#related-projects)
+- [License](#license)
 
 ## Overview
 
@@ -13,7 +25,7 @@ package main
 
 import (
     "fmt"
-    "github.com/Azure/azure-functions-go-worker/pkg/azfunc"
+    "github.com/laveeshb/azure-functions-go-worker/pkg/azfunc"
 )
 
 func init() {
@@ -61,7 +73,7 @@ The worker communicates with the Azure Functions Host via gRPC using the standar
 
 ```bash
 # Clone the repository
-git clone https://github.com/Azure/azure-functions-go-worker.git
+git clone https://github.com/laveeshb/azure-functions-go-worker.git
 cd azure-functions-go-worker
 
 # Generate protobuf code (if needed)
@@ -83,6 +95,27 @@ func start
 
 Then visit: http://localhost:7071/api/HttpTrigger?name=Gopher
 
+## Deploy to Azure
+
+A complete deployable sample with Azure deployment scripts is available:
+
+```powershell
+# Windows
+cd samples/hello-world
+.\deploy.ps1 -ResourceGroupName "rg-gofunc" -Location "eastus"
+```
+
+```bash
+# Linux/Mac
+cd samples/hello-world
+./deploy.sh -g "rg-gofunc" -l "eastus"
+```
+
+See [samples/hello-world/README.md](samples/hello-world/README.md) for full deployment documentation including:
+- Local development setup
+- Cross-compilation for Azure
+- Manual deployment steps
+
 ## Project Structure
 
 ```
@@ -97,6 +130,8 @@ azure-functions-go-worker/
 ├── examples/
 │   ├── httpTrigger/     # Native gRPC worker example
 │   └── httpHandler/     # Custom Handler HTTP example
+├── samples/
+│   └── hello-world/     # Deployable sample with Azure templates
 ├── test/
 │   ├── integration/     # gRPC integration tests
 │   └── functest/        # func.exe E2E tests
@@ -188,14 +223,10 @@ ctx.LogError("msg") // Log at Error level
 ### Phase 4: Production Ready
 - [ ] Performance optimization
 - [ ] Documentation
-- [ ] Azure deployment support
+- [x] Azure deployment support (see [samples/hello-world](samples/hello-world/))
 - [ ] VS Code integration
 
-## Contributing
-
-Contributions are welcome! Please read our contributing guidelines (coming soon).
-
-### Development Setup
+## Development
 
 ```bash
 # Install development tools
@@ -216,8 +247,6 @@ make fmt
 # Run linter
 make lint
 ```
-
-## Design Documentation
 
 See [docs/design/ARCHITECTURE.md](docs/design/ARCHITECTURE.md) for detailed architecture and design decisions.
 

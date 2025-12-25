@@ -307,8 +307,8 @@ const file_shared_NullableTypes_proto_rawDesc = "" +
 	"\x04bool\"T\n" +
 	"\x11NullableTimestamp\x122\n" +
 	"\x05value\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\x05valueB\v\n" +
-	"\ttimestampBk\n" +
-	"*com.microsoft.azure.functions.rpc.messagesZ=github.com/Azure/azure-functions-go-worker/internal/rpc/protob\x06proto3"
+	"\ttimestampBn\n" +
+	"*com.microsoft.azure.functions.rpc.messagesZ@github.com/laveeshb/azure-functions-go-worker/internal/rpc/protob\x06proto3"
 
 var (
 	file_shared_NullableTypes_proto_rawDescOnce sync.Once

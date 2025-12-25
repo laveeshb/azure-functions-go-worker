@@ -1,0 +1,21 @@
+# Ignore build artifacts
+handler
+handler.exe
+*.so
+*.dylib
+
+# Ignore local settings (may contain secrets)
+local.settings.json
+
+# Ignore IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore deployment packages
+*.zip

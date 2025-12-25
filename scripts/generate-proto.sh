@@ -20,9 +20,9 @@ echo "Output dir: ${OUT_DIR}"
 protoc \
     --proto_path="${PROTO_DIR}" \
     --go_out="${ROOT}" \
-    --go_opt=module=github.com/Azure/azure-functions-go-worker \
+    --go_opt=module=github.com/laveeshb/azure-functions-go-worker \
     --go-grpc_out="${ROOT}" \
-    --go-grpc_opt=module=github.com/Azure/azure-functions-go-worker \
+    --go-grpc_opt=module=github.com/laveeshb/azure-functions-go-worker \
     "${PROTO_DIR}/shared/NullableTypes.proto" \
     "${PROTO_DIR}/identity/ClaimsIdentityRpc.proto" \
     "${PROTO_DIR}/FunctionRpc.proto"

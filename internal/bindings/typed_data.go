@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 // Package bindings provides converters between protobuf TypedData and Go types.
 package bindings
 
@@ -8,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	pb "github.com/Azure/azure-functions-go-worker/internal/rpc/proto"
+	pb "github.com/laveeshb/azure-functions-go-worker/internal/rpc/proto"
 )
 
 // TypedDataToString converts TypedData to a string.

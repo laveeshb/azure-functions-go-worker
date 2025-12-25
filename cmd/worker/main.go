@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 // Package main provides the entry point for the Azure Functions Go Worker.
 //
 // This is the worker executable that the Azure Functions Host launches.
@@ -16,7 +13,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/Azure/azure-functions-go-worker/pkg/azfunc"
+	"github.com/laveeshb/azure-functions-go-worker/pkg/azfunc"
 )
 
 func main() {
