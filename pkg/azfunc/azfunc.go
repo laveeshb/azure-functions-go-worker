@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 // Package azfunc provides the public SDK for writing Azure Functions in Go.
 //
 // Example usage:

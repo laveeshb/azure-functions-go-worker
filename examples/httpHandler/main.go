@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 // This example uses Custom Handler HTTP mode for local testing with func.exe.
 // The worker runs an HTTP server that receives forwarded requests from the host.
 package main

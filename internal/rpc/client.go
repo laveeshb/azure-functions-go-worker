@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 // Package rpc provides the gRPC client implementation for communicating with the Azure Functions Host.
 package rpc
 

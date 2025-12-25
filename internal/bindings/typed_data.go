@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 // Package bindings provides converters between protobuf TypedData and Go types.
 package bindings
 

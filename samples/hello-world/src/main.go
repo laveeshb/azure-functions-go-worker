@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 // Sample Azure Functions Go Worker Application
 // This is a complete, deployable example using Custom Handlers.
 package main

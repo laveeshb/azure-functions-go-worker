@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 // Package integration contains integration tests that simulate the Azure Functions Host.
 package integration
 
