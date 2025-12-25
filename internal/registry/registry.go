@@ -8,10 +8,39 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"runtime"
+	"strings"
 	"sync"
 
 	pb "github.com/Azure/azure-functions-go-worker/internal/rpc/proto"
 )
+
+// captureStackTrace captures the current stack trace, skipping runtime/panic frames.
+func captureStackTrace() string {
+	const maxStackSize = 4096
+	buf := make([]byte, maxStackSize)
+	n := runtime.Stack(buf, false)
+	stack := string(buf[:n])
+
+	// Skip the first few frames (captureStackTrace, defer, recover)
+	lines := strings.Split(stack, "\n")
+	var filtered []string
+	skipNext := false
+	for _, line := range lines {
+		if strings.Contains(line, "runtime.gopanic") ||
+			strings.Contains(line, "runtime/panic.go") ||
+			strings.Contains(line, "captureStackTrace") {
+			skipNext = true
+			continue
+		}
+		if skipNext {
+			skipNext = false
+			continue
+		}
+		filtered = append(filtered, line)
+	}
+	return strings.Join(filtered, "\n")
+}
 
 // FunctionHandler is the signature for a function handler.
 // The handler receives the invocation context and input data, and returns output data or an error.
@@ -101,7 +130,8 @@ func (r *Registry) LoadFunction(ctx context.Context, functionID string, metadata
 }
 
 // Execute executes a function by its invocation request.
-func (r *Registry) Execute(ctx context.Context, req *pb.InvocationRequest) (*pb.InvocationResponse, error) {
+// Panics in the handler are recovered and returned as errors.
+func (r *Registry) Execute(ctx context.Context, req *pb.InvocationRequest) (resp *pb.InvocationResponse, err error) {
 	r.mu.RLock()
 	info, exists := r.functions[req.FunctionId]
 	r.mu.RUnlock()
@@ -111,6 +141,27 @@ func (r *Registry) Execute(ctx context.Context, req *pb.InvocationRequest) (*pb.
 	}
 
 	log.Printf("Executing function: %s (ID: %s, Invocation: %s)", info.Name, info.ID, req.InvocationId)
+
+	// Recover from panics in user code
+	defer func() {
+		if r := recover(); r != nil {
+			stackTrace := captureStackTrace()
+			log.Printf("Panic in function %s: %v\n%s", info.Name, r, stackTrace)
+			
+			resp = &pb.InvocationResponse{
+				InvocationId: req.InvocationId,
+				Result: &pb.StatusResult{
+					Status: pb.StatusResult_Failure,
+					Exception: &pb.RpcException{
+						Message:    fmt.Sprintf("panic: %v", r),
+						StackTrace: stackTrace,
+						Type:       "PanicException",
+					},
+				},
+			}
+			err = nil // Clear error since we're returning a valid response
+		}
+	}()
 
 	// Call the registered handler
 	return info.Handler(ctx, req)
