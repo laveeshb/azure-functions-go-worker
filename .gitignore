@@ -1,0 +1,38 @@
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+coverage.html
+
+# Dependency directories
+vendor/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local settings (may contain secrets)
+local.settings.json
+
+# Build outputs
+examples/*/worker.exe
+
+# Generated proto files (optional - some prefer to commit these)
+# internal/rpc/proto/*.pb.go
+# internal/rpc/proto/**/*.pb.go
