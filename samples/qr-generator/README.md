@@ -10,6 +10,12 @@ A sample Azure Functions app that generates QR codes, built with the Go gRPC wor
 - [Local Development](#local-development)
 - [API Reference](#api-reference)
 - [Deploy to Azure](#deploy-to-azure)
+  - [Quick Start (Turnkey Script)](#quick-start-turnkey-script)
+  - [Script Options](#script-options)
+  - [Manual Deployment](#manual-deployment)
+  - [Redeployment](#redeployment)
+  - [Clean Up](#clean-up)
+  - [Troubleshooting](#troubleshooting)
 - [Using the QR Code](#using-the-qr-code)
 - [Project Structure](#project-structure)
 - [License](#license)
@@ -140,35 +146,209 @@ Health check endpoint.
 
 ## Deploy to Azure
 
-### Using Azure CLI
+### Quick Start (Turnkey Script)
+
+The easiest way to deploy is using the provided deployment scripts:
+
+**PowerShell (Windows):**
+
+```powershell
+cd samples/qr-generator
+.\deploy.ps1 -FunctionAppName "my-qr-generator-123"
+```
+
+**Bash (Linux/macOS):**
 
 ```bash
-# Create a resource group
-az group create --name qr-generator-rg --location eastus
+cd samples/qr-generator
+chmod +x deploy.sh
+./deploy.sh -n my-qr-generator-123
+```
 
-# Create a storage account
+The scripts handle everything: prerequisites check, cross-compilation, Azure resource creation, and deployment.
+
+### Script Options
+
+| Option | PowerShell | Bash | Description |
+|--------|------------|------|-------------|
+| Function App Name | `-FunctionAppName` | `-n, --name` | **Required.** Globally unique name |
+| Resource Group | `-ResourceGroup` | `-g, --resource-group` | Default: `qr-generator-rg` |
+| Location | `-Location` | `-l, --location` | Default: `eastus` |
+| Storage Account | `-StorageAccountName` | `-s, --storage` | Auto-generated if not specified |
+| Plan | `-Plan` | `-p, --plan` | `Consumption` (default), `Premium`, `Dedicated` |
+| SKU | `-Sku` | `--sku` | SKU for Premium/Dedicated plans |
+| Skip Build | `-SkipBuild` | `--skip-build` | Use existing binary |
+| Skip Resources | `-SkipResourceCreation` | `--skip-resources` | Redeploy only |
+
+### Hosting Plans
+
+| Plan | SKU Options | Pricing | Cold Start | Use Case |
+|------|-------------|---------|------------|----------|
+| **Consumption** | N/A (Dynamic) | Pay-per-execution | Yes (10-30s) | Low traffic, cost-sensitive |
+| **Premium** | EP1, EP2, EP3 | ~$150-600/month | No | Production, low latency |
+| **Dedicated** | B1, S1, P1v2, etc. | ~$50-500/month | No | Predictable workloads |
+
+**Examples:**
+
+```powershell
+# Consumption (default) - free tier covers 1M requests/month
+.\deploy.ps1 -FunctionAppName "myqrgen123"
+
+# Premium EP1 - no cold starts, VNET integration
+.\deploy.ps1 -FunctionAppName "myqrgen123" -Plan Premium -Sku EP1
+
+# Dedicated S1 - reserved App Service capacity
+.\deploy.ps1 -FunctionAppName "myqrgen123" -Plan Dedicated -Sku S1
+```
+
+```bash
+# Consumption (default)
+./deploy.sh -n myqrgen123
+
+# Premium EP1
+./deploy.sh -n myqrgen123 -p premium --sku EP1
+
+# Dedicated S1
+./deploy.sh -n myqrgen123 -p dedicated --sku S1
+```
+
+### Manual Deployment
+
+If you prefer to deploy manually, follow these steps:
+
+#### Step 1: Prerequisites
+
+Ensure you have these tools installed:
+
+```bash
+# Check Azure CLI
+az --version
+
+# Check Azure Functions Core Tools
+func --version
+
+# Check Go
+go version
+```
+
+#### Step 2: Login to Azure
+
+```bash
+az login
+az account set --subscription "Your Subscription Name"
+```
+
+#### Step 3: Create Azure Resources
+
+```bash
+# Set variables (customize these)
+RESOURCE_GROUP="qr-generator-rg"
+LOCATION="eastus"
+FUNCTION_APP="qr-generator-$(openssl rand -hex 4)"  # Must be globally unique
+STORAGE_ACCOUNT="${FUNCTION_APP//[^a-z0-9]/}stor"
+
+# Create resource group
+az group create \
+  --name $RESOURCE_GROUP \
+  --location $LOCATION
+
+# Create storage account
 az storage account create \
-  --name qrgenstorage \
-  --resource-group qr-generator-rg \
-  --location eastus \
+  --name $STORAGE_ACCOUNT \
+  --resource-group $RESOURCE_GROUP \
+  --location $LOCATION \
   --sku Standard_LRS
 
-# Create a function app
+# Create function app with custom runtime
 az functionapp create \
-  --name qr-generator-func \
-  --resource-group qr-generator-rg \
-  --storage-account qrgenstorage \
-  --consumption-plan-location eastus \
+  --name $FUNCTION_APP \
+  --resource-group $RESOURCE_GROUP \
+  --storage-account $STORAGE_ACCOUNT \
+  --consumption-plan-location $LOCATION \
   --runtime custom \
-  --functions-version 4
+  --functions-version 4 \
+  --os-type Linux
 
-# Build for Linux
-GOOS=linux GOARCH=amd64 go build -o samples/qr-generator/worker ./samples/qr-generator
-
-# Deploy
-cd samples/qr-generator
-func azure functionapp publish qr-generator-func
+# Configure runtime
+az functionapp config appsettings set \
+  --name $FUNCTION_APP \
+  --resource-group $RESOURCE_GROUP \
+  --settings "FUNCTIONS_WORKER_RUNTIME=custom"
 ```
+
+#### Step 4: Build for Linux
+
+Azure Functions runs on Linux by default. Cross-compile from any OS:
+
+**Windows (PowerShell):**
+
+```powershell
+$env:GOOS = "linux"
+$env:GOARCH = "amd64"
+$env:CGO_ENABLED = "0"
+go build -ldflags="-s -w" -o worker .
+```
+
+**Linux/macOS:**
+
+```bash
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o worker .
+```
+
+> **Note:** The `-ldflags="-s -w"` flags strip debug information, reducing binary size by ~30%.
+
+#### Step 5: Deploy
+
+```bash
+cd samples/qr-generator
+func azure functionapp publish $FUNCTION_APP --no-build
+```
+
+#### Step 6: Test Your Deployment
+
+```bash
+# Health check
+curl https://$FUNCTION_APP.azurewebsites.net/api/health
+
+# Generate a QR code
+curl -X POST https://$FUNCTION_APP.azurewebsites.net/api/generate \
+  -H "Content-Type: application/json" \
+  -d '{"content": "Hello from Azure!", "size": 256}'
+
+# Or open the web UI in your browser
+echo "https://$FUNCTION_APP.azurewebsites.net/api/generate"
+```
+
+### Redeployment
+
+After making code changes, redeploy with:
+
+```bash
+# Rebuild and redeploy
+GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o worker .
+func azure functionapp publish $FUNCTION_APP --no-build
+
+# Or use the script
+./deploy.sh -n $FUNCTION_APP --skip-resources
+```
+
+### Clean Up
+
+To delete all Azure resources:
+
+```bash
+az group delete --name qr-generator-rg --yes --no-wait
+```
+
+### Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| "Function app not found" | Ensure the function app name is globally unique |
+| Binary won't start | Verify you built for Linux (`GOOS=linux GOARCH=amd64`) |
+| Functions not discovered | Check `function.json` files exist in subdirectories |
+| 500 errors | Check logs: `func azure functionapp logstream $FUNCTION_APP` |
+| Cold start slow | First request after idle may take 10-30s on Consumption plan |
 
 ## Using the QR Code
 
@@ -196,6 +376,8 @@ qr-generator/
 ├── host.json            # Azure Functions host configuration
 ├── local.settings.json  # Local development settings
 ├── worker.config.json   # Worker discovery config
+├── deploy.ps1           # PowerShell deployment script (Windows)
+├── deploy.sh            # Bash deployment script (Linux/macOS)
 ├── Generate/
 │   └── function.json    # Generate function binding
 └── Health/
