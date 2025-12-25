@@ -221,3 +221,9 @@ func (r *Registry) Clear() {
 
 	r.functions = make(map[string]*FunctionInfo)
 }
+
+// Clone creates a new empty registry.
+// This is useful for testing to avoid polluting the global registry.
+func (r *Registry) Clone() *Registry {
+	return NewRegistry()
+}
