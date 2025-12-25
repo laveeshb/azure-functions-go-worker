@@ -2,6 +2,20 @@
 
 A native Go language worker for Azure Functions, enabling first-class Go support (not Custom Handlers).
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Getting Started](#getting-started)
+- [Deploy to Azure](#deploy-to-azure)
+- [Project Structure](#project-structure)
+- [API Reference](#api-reference)
+- [Roadmap](#roadmap)
+- [Development](#development)
+- [Related Projects](#related-projects)
+- [License](#license)
+
 ## Overview
 
 This worker allows you to write Azure Functions in Go with an idiomatic API:
@@ -212,11 +226,7 @@ ctx.LogError("msg") // Log at Error level
 - [x] Azure deployment support (see [samples/hello-world](samples/hello-world/))
 - [ ] VS Code integration
 
-## Contributing
-
-Contributions are welcome! Please read our contributing guidelines (coming soon).
-
-### Development Setup
+## Development
 
 ```bash
 # Install development tools
@@ -237,8 +247,6 @@ make fmt
 # Run linter
 make lint
 ```
-
-## Design Documentation
 
 See [docs/design/ARCHITECTURE.md](docs/design/ARCHITECTURE.md) for detailed architecture and design decisions.
 
