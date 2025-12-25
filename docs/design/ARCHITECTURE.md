@@ -1,5 +1,22 @@
 # Azure Functions Go Worker - Architecture Design
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Goals](#goals)
+- [Design Decisions & Rationale](#design-decisions--rationale)
+- [High-Level Architecture](#high-level-architecture)
+- [Project Structure](#project-structure)
+- [Core Components](#core-components)
+- [gRPC Protocol Details](#grpc-protocol-details)
+- [Function Discovery Mechanism](#function-discovery-mechanism)
+- [Type Mapping](#type-mapping)
+- [Error Handling](#error-handling)
+- [MVP Implementation Phases](#mvp-implementation-phases)
+- [Configuration](#configuration)
+- [Future Considerations](#future-considerations)
+- [References](#references)
+
 ## Overview
 
 This document describes the architecture for a native Go language worker for Azure Functions. The worker implements an out-of-process model, communicating with the Azure Functions Host via gRPC.
@@ -209,9 +226,10 @@ azure-functions-go-worker/
 ├── docs/
 │   └── design/
 │       └── ARCHITECTURE.md      # This document
-├── examples/
-│   └── httpTrigger/
-│       └── main.go              # Example HTTP function
+├── samples/
+│   ├── hello-world-grpc/        # Hello World using gRPC worker
+│   ├── hello-world-custom-handler/ # Hello World using Custom Handler
+│   └── qr-generator/            # QR Code generator (gRPC)
 ├── scripts/
 │   ├── generate-proto.ps1       # Windows proto generation
 │   └── generate-proto.sh        # Unix proto generation

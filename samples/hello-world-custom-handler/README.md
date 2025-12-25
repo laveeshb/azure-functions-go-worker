@@ -1,6 +1,21 @@
-# Azure Functions Go Worker - Hello World Sample
+# Hello World - Custom Handler
 
-A complete, deployable Azure Functions application written in Go using Custom Handlers.
+A complete, deployable Azure Functions application written in Go using **Custom Handlers**.
+
+> **Note:** This sample uses the Custom Handler approach for comparison purposes.
+> For new projects, we recommend using the [gRPC worker](../hello-world-grpc/) instead.
+
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Functions](#functions)
+- [Project Structure](#project-structure)
+- [Azure Resources Created](#azure-resources-created)
+- [What Gets Deployed](#what-gets-deployed)
+- [Customization](#customization)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
 
 ## Prerequisites
 
@@ -17,13 +32,13 @@ These scripts handle cross-compilation and deployment automatically:
 
 ```powershell
 # PowerShell (Windows)
-cd samples/hello-world
+cd samples/hello-world-custom-handler
 .\deploy.ps1 -ResourceGroupName "rg-gofunc" -Location "eastus"
 ```
 
 ```bash
 # Bash (Linux/Mac)
-cd samples/hello-world
+cd samples/hello-world-custom-handler
 ./deploy.sh -g "rg-gofunc" -l "eastus"
 ```
 
@@ -83,7 +98,7 @@ func azure functionapp publish <your-function-app-name> --no-build
 ## Project Structure
 
 ```
-hello-world/
+hello-world-custom-handler/
 ├── deploy.ps1          # Windows deployment script
 ├── deploy.sh           # Linux/Mac deployment script
 └── src/                # Function App source code

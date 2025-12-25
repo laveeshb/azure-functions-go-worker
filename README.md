@@ -8,6 +8,7 @@ A native Go language worker for Azure Functions, enabling first-class Go support
 - [Features](#features)
 - [Architecture](#architecture)
 - [Getting Started](#getting-started)
+- [Samples](#samples)
 - [Deploy to Azure](#deploy-to-azure)
 - [Project Structure](#project-structure)
 - [API Reference](#api-reference)
@@ -89,11 +90,20 @@ make example
 ### Running the Example
 
 ```bash
-cd examples/httpTrigger
+cd samples/hello-world-grpc
+go build -o worker.exe .
 func start
 ```
 
-Then visit: http://localhost:7071/api/HttpTrigger?name=Gopher
+Then visit: http://localhost:7071/api/hello?name=Gopher
+
+## Samples
+
+| Sample | Protocol | Description |
+|--------|----------|-------------|
+| [hello-world-grpc](samples/hello-world-grpc/) | gRPC | **Recommended** - Hello World using the native gRPC worker |
+| [hello-world-custom-handler](samples/hello-world-custom-handler/) | HTTP | Hello World using Custom Handler (for comparison) |
+| [qr-generator](samples/qr-generator/) | gRPC | QR code generator with image output |
 
 ## Deploy to Azure
 
@@ -101,20 +111,17 @@ A complete deployable sample with Azure deployment scripts is available:
 
 ```powershell
 # Windows
-cd samples/hello-world
+cd samples/hello-world-custom-handler
 .\deploy.ps1 -ResourceGroupName "rg-gofunc" -Location "eastus"
 ```
 
 ```bash
 # Linux/Mac
-cd samples/hello-world
+cd samples/hello-world-custom-handler
 ./deploy.sh -g "rg-gofunc" -l "eastus"
 ```
 
-See [samples/hello-world/README.md](samples/hello-world/README.md) for full deployment documentation including:
-- Local development setup
-- Cross-compilation for Azure
-- Manual deployment steps
+See [samples/hello-world-custom-handler/README.md](samples/hello-world-custom-handler/README.md) for deployment documentation.
 
 ## Project Structure
 
@@ -127,11 +134,10 @@ azure-functions-go-worker/
 │   ├── registry/        # Function registration
 │   └── bindings/        # Type converters
 ├── proto/               # Protobuf definitions
-├── examples/
-│   ├── httpTrigger/     # Native gRPC worker example
-│   └── httpHandler/     # Custom Handler HTTP example
 ├── samples/
-│   └── hello-world/     # Deployable sample with Azure templates
+│   ├── hello-world-grpc/           # Hello World using gRPC worker
+│   ├── hello-world-custom-handler/ # Hello World using Custom Handler
+│   └── qr-generator/               # QR Code generator (gRPC)
 ├── test/
 │   ├── integration/     # gRPC integration tests
 │   └── functest/        # func.exe E2E tests

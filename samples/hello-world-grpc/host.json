@@ -6,18 +6,13 @@
         "isEnabled": true,
         "excludedTypes": "Request"
       }
+    },
+    "logLevel": {
+      "default": "Information"
     }
   },
   "extensionBundle": {
     "id": "Microsoft.Azure.Functions.ExtensionBundle",
     "version": "[4.*, 5.0.0)"
-  },
-  "customHandler": {
-    "description": {
-      "defaultExecutablePath": "worker.exe",
-      "workingDirectory": "",
-      "arguments": []
-    },
-    "enableForwardingHttpRequest": false
   }
 }

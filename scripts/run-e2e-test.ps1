@@ -1,9 +1,10 @@
 # E2E Test Script for Azure Functions Go Worker
-# This script starts the Custom Handler and runs E2E tests
+# This script starts the gRPC worker and runs E2E tests
 #
 # Prerequisites:
 # - Azure Functions Core Tools 4.x installed
 # - Go 1.21+ installed
+# - worker.config.json installed in func tools workers/go directory
 #
 # Usage:
 #   .\scripts\run-e2e-test.ps1
@@ -15,24 +16,46 @@ if (-not (Test-Path "$projectRoot\go.mod")) {
     $projectRoot = Split-Path -Parent $PSScriptRoot
 }
 
-$exampleDir = Join-Path $projectRoot "examples\httpHandler"
-$handlerExe = Join-Path $exampleDir "handler.exe"
+$sampleDir = Join-Path $projectRoot "samples\hello-world-grpc"
+$workerExe = Join-Path $sampleDir "worker.exe"
 
 Write-Host "Project root: $projectRoot" -ForegroundColor Cyan
-Write-Host "Example dir: $exampleDir" -ForegroundColor Cyan
+Write-Host "Sample dir: $sampleDir" -ForegroundColor Cyan
 
-# Build the handler
-Write-Host "`nBuilding handler..." -ForegroundColor Yellow
-Push-Location $exampleDir
+# Build the worker
+Write-Host "`nBuilding worker..." -ForegroundColor Yellow
+Push-Location $sampleDir
 try {
-    go build -o handler.exe .
+    go build -o worker.exe .
     if ($LASTEXITCODE -ne 0) {
-        throw "Failed to build handler"
+        throw "Failed to build worker"
     }
-    Write-Host "Handler built successfully" -ForegroundColor Green
+    Write-Host "Worker built successfully" -ForegroundColor Green
 }
 finally {
     Pop-Location
+}
+
+# Copy worker to func tools directory
+$funcToolsDir = Join-Path (Split-Path (Get-Command func).Source) "workers\go"
+if (-not (Test-Path $funcToolsDir)) {
+    New-Item -ItemType Directory -Path $funcToolsDir -Force | Out-Null
+}
+
+Write-Host "`nCopying worker to func tools..." -ForegroundColor Yellow
+Copy-Item $workerExe (Join-Path $funcToolsDir "worker.exe") -Force
+
+# Ensure worker.config.json exists
+$workerConfig = Join-Path $funcToolsDir "worker.config.json"
+if (-not (Test-Path $workerConfig)) {
+    Write-Host "Creating worker.config.json..." -ForegroundColor Yellow
+    @{
+        description = @{
+            language = "go"
+            extensions = @(".go")
+            defaultExecutablePath = "worker.exe"
+        }
+    } | ConvertTo-Json -Depth 3 | Set-Content $workerConfig -Encoding UTF8
 }
 
 # Start func.exe in background
@@ -48,9 +71,9 @@ $job = Start-Job -ScriptBlock {
     param($dir)
     Set-Location $dir
     & func start 2>&1
-} -ArgumentList $exampleDir
+} -ArgumentList $sampleDir
 
-# Wait for func to be ready - give it more time since it needs to download extensions
+# Wait for func to be ready
 Write-Host "Waiting for Functions Host to be ready..." -ForegroundColor Yellow
 $maxWait = 60
 $waited = 0
@@ -63,7 +86,7 @@ while ($waited -lt $maxWait -and -not $ready) {
     Start-Sleep -Seconds 1
     $waited++
     try {
-        $response = Invoke-WebRequest -Uri "http://localhost:7071/api/HttpTrigger" -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
+        $response = Invoke-WebRequest -Uri "http://localhost:7071/api/health" -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
         if ($response.StatusCode -eq 200) {
             $ready = $true
         }
@@ -99,16 +122,24 @@ function Test-Endpoint {
         [string]$Url,
         [string]$ExpectedContent,
         [string]$Method = "GET",
-        [string]$Body = $null
+        [string]$Body = $null,
+        [string]$ContentType = "application/json"
     )
     
     Write-Host "`nTest: $Name" -ForegroundColor Cyan
     try {
-        if ($Method -eq "POST" -and $Body) {
-            $response = Invoke-WebRequest -Uri $Url -Method POST -Body $Body -ContentType "text/plain" -UseBasicParsing
-        } else {
-            $response = Invoke-WebRequest -Uri $Url -UseBasicParsing
+        $params = @{
+            Uri = $Url
+            Method = $Method
+            UseBasicParsing = $true
         }
+        
+        if ($Body) {
+            $params.Body = $Body
+            $params.ContentType = $ContentType
+        }
+        
+        $response = Invoke-WebRequest @params
         
         if ($response.Content -like "*$ExpectedContent*") {
             Write-Host "  PASS: Response contains expected content" -ForegroundColor Green
@@ -127,29 +158,30 @@ function Test-Endpoint {
     }
 }
 
-# Test 1: HttpTrigger with name
-if (Test-Endpoint -Name "HttpTrigger with name" -Url "http://localhost:7071/api/HttpTrigger?name=E2ETest" -ExpectedContent "Hello, E2ETest!") {
+# Test 1: Health check
+if (Test-Endpoint -Name "Health check" -Url "http://localhost:7071/api/health" -ExpectedContent "healthy") {
     $testsPassed++
 } else {
     $testsFailed++
 }
 
-# Test 2: HttpTrigger without name (default)
-if (Test-Endpoint -Name "HttpTrigger default" -Url "http://localhost:7071/api/HttpTrigger" -ExpectedContent "Hello, World!") {
+# Test 2: Hello with name in query string
+if (Test-Endpoint -Name "Hello with name" -Url "http://localhost:7071/api/hello?name=E2ETest" -ExpectedContent "Hello, E2ETest!") {
     $testsPassed++
 } else {
     $testsFailed++
 }
 
-# Test 3: HelloWorld JSON response
-if (Test-Endpoint -Name "HelloWorld JSON" -Url "http://localhost:7071/api/HelloWorld" -ExpectedContent "Hello from Azure Functions Go Worker") {
+# Test 3: Hello without name (default)
+if (Test-Endpoint -Name "Hello default" -Url "http://localhost:7071/api/hello" -ExpectedContent "Hello, World!") {
     $testsPassed++
 } else {
     $testsFailed++
 }
 
-# Test 4: POST with body
-if (Test-Endpoint -Name "HttpTrigger POST" -Url "http://localhost:7071/api/HttpTrigger" -ExpectedContent "Hello, PostBody!" -Method "POST" -Body "PostBody") {
+# Test 4: Echo POST
+$echoBody = '{"message": "test"}'
+if (Test-Endpoint -Name "Echo POST" -Url "http://localhost:7071/api/echo" -ExpectedContent "test" -Method "POST" -Body $echoBody) {
     $testsPassed++
 } else {
     $testsFailed++

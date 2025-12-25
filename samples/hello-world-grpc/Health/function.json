@@ -10,7 +10,9 @@
     {
       "type": "http",
       "direction": "out",
-      "name": "$return"
+      "name": "res"
     }
-  ]
+  ],
+  "scriptFile": "../worker.exe",
+  "language": "go"
 }

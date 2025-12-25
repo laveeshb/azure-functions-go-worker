@@ -1,13 +1,38 @@
 # QR Code Generator - Azure Functions Go Sample
 
-A sample Azure Functions app that generates QR codes, built with the Go worker.
+A sample Azure Functions app that generates QR codes, built with the Go gRPC worker.
+
+## Table of Contents
+
+- [Features](#features)
+- [Privacy](#privacy)
+- [Prerequisites](#prerequisites)
+- [Local Development](#local-development)
+- [API Reference](#api-reference)
+- [Deploy to Azure](#deploy-to-azure)
+- [Using the QR Code](#using-the-qr-code)
+- [Project Structure](#project-structure)
+- [License](#license)
 
 ## Features
 
+- **Interactive Web UI** - User-friendly landing page at `/api/generate`
 - Generate QR codes from any text or URL
 - Configurable image size (up to 1024px)
-- Returns base64-encoded PNG images
+- Download generated QR codes as PNG
+- Returns base64-encoded PNG images via API
 - Health check endpoint
+
+## Privacy
+
+🔒 **Your data is never stored.**
+
+This application does not log, save, or transmit any user data to third parties. All QR code generation happens in-memory on the server and your data is immediately discarded after the response is sent.
+
+- No cookies
+- No tracking
+- No data retention
+- No analytics
 
 ## Prerequisites
 
@@ -33,7 +58,14 @@ func start
 
 ### Test
 
-Generate a QR code:
+**Web UI (recommended):**
+
+Open your browser and navigate to:
+```
+http://localhost:7071/api/generate
+```
+
+**API - Generate a QR code:**
 
 ```bash
 curl -X POST http://localhost:7071/api/generate \
@@ -41,13 +73,23 @@ curl -X POST http://localhost:7071/api/generate \
   -d '{"content": "https://github.com/laveeshb/azure-functions-go-worker", "size": 256}'
 ```
 
-Health check:
+**Health check:**
 
 ```bash
 curl http://localhost:7071/api/health
 ```
 
 ## API Reference
+
+### GET /api/generate
+
+Serves an interactive web page where users can:
+- Enter text or URL to encode
+- Select QR code size
+- Generate and preview the QR code
+- Download the QR code as PNG
+
+Simply open `http://localhost:7071/api/generate` in your browser.
 
 ### POST /api/generate
 
@@ -150,9 +192,10 @@ curl -s -X POST http://localhost:7071/api/generate \
 ```
 qr-generator/
 ├── main.go              # Function handlers
+├── go.mod               # Go module definition
 ├── host.json            # Azure Functions host configuration
 ├── local.settings.json  # Local development settings
-├── README.md            # This file
+├── worker.config.json   # Worker discovery config
 ├── Generate/
 │   └── function.json    # Generate function binding
 └── Health/
