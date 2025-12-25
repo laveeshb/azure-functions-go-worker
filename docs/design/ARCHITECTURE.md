@@ -11,6 +11,142 @@ This document describes the architecture for a native Go language worker for Azu
 3. **Performance** - Leverage Go's efficiency and fast startup times
 4. **Compatibility** - Support all major Azure Functions bindings over time
 
+## Design Decisions & Rationale
+
+### Why Go instead of Rust?
+
+| Factor | Go | Rust |
+|--------|-----|------|
+| Community demand | Higher - more requests on GitHub issues | Lower |
+| Learning curve | Gentle - most devs productive in days | Steep - ownership/lifetimes take weeks |
+| AWS Lambda precedent | Native Go support exists, migration appeal | No native Rust runtime |
+| Compile times | Fast (~seconds) | Slow (~minutes for large projects) |
+| Iteration speed | Faster prototyping | Slower due to strict compiler |
+
+**Decision:** Go offers faster time-to-market and broader adoption potential.
+
+### Why start fresh instead of forking radu-matei/azure-functions-golang-worker?
+
+1. **Staleness** - Last commit was 6+ years ago (2018)
+2. **API drift** - Azure Functions Host APIs have changed significantly
+3. **Protobuf changes** - The gRPC contract has new messages and fields
+4. **Go ecosystem evolution** - Go modules, generics, better error handling patterns
+5. **Technical debt** - Starting fresh avoids inheriting outdated patterns
+
+**Decision:** Clean slate allows modern Go practices and current Azure Functions APIs.
+
+### Why out-of-process instead of in-process?
+
+1. **No host modifications required** - Host already supports language workers via gRPC
+2. **Process isolation** - Go panics don't crash the host
+3. **Independent deployment** - Worker can be updated without host changes
+4. **Precedent** - Python, Node.js, Java, PowerShell all use this model
+5. **Microsoft's direction** - In-process is being deprecated for .NET too
+
+**Decision:** Out-of-process is the supported, future-proof approach.
+
+### Why compile functions into the worker binary?
+
+**Alternatives considered:**
+- **Reflection/plugins** - Go plugins are fragile, OS-specific, and have version coupling issues
+- **Interpreted Go** - Yaegi/similar are slow and don't support all Go features
+- **Separate binaries** - Would require custom IPC, complicating the architecture
+
+**Our approach:** Functions are compiled into the worker binary via imports.
+
+```go
+// User's main.go
+import _ "myapp/functions"  // registers handlers in init()
+
+func main() {
+    azfunc.Start()
+}
+```
+
+**Benefits:**
+- Full Go performance (no interpretation overhead)
+- Standard Go toolchain (go build, go test)
+- Type safety at compile time
+- Easy debugging with standard tools
+
+### Why function.json for discovery instead of code-only?
+
+1. **Host compatibility** - Azure Functions Host reads function.json for trigger/binding config
+2. **Declarative bindings** - Connection strings, auth levels, routes are config, not code
+3. **Tooling integration** - VS Code, Azure Portal, Core Tools expect function.json
+4. **Separation of concerns** - Infrastructure config vs application logic
+
+**Future consideration:** We may add code-first metadata generation (like Python decorators) that auto-generates function.json.
+
+### Why `internal/` vs `pkg/` package layout?
+
+| Package | Visibility | Purpose |
+|---------|------------|---------|
+| `internal/` | Private | Implementation details that may change |
+| `pkg/azfunc/` | Public | Stable API for function developers |
+
+**Rationale:**
+- `internal/rpc` - gRPC client details are implementation, not API
+- `internal/registry` - Function storage internals may change
+- `internal/bindings` - Converter internals may evolve
+- `pkg/azfunc` - Developer-facing API must be stable
+
+This follows Go best practices for library design.
+
+### Why typed HttpRequest/HttpResponse instead of raw protobuf?
+
+**Raw protobuf problems:**
+```go
+// Unfriendly - requires knowing protobuf internals
+body := req.InputData[0].GetData().GetHttp().GetBody().GetString_()
+```
+
+**Our SDK:**
+```go
+// Friendly - idiomatic Go
+body := req.BodyAsString()
+name := req.GetQuery("name")
+```
+
+**Benefits:**
+- Hides protobuf complexity from users
+- Provides type-safe, discoverable API
+- Matches patterns Go developers expect (similar to net/http)
+
+### Why bidirectional streaming instead of unary RPC?
+
+The Azure Functions Host uses `EventStream` - a single bidirectional stream for all communication:
+
+```protobuf
+service FunctionRpc {
+  rpc EventStream(stream StreamingMessage) returns (stream StreamingMessage);
+}
+```
+
+**Reasons:**
+1. **Connection efficiency** - Single persistent connection vs per-request overhead
+2. **Async messaging** - Host can send invocations anytime without polling
+3. **Logging** - Worker can stream logs back continuously
+4. **Protocol requirement** - This is how the host works, not optional
+
+### Why handler registration in init() instead of main()?
+
+```go
+func init() {
+    azfunc.RegisterHttpFunction("MyFunc", handler)
+}
+
+func main() {
+    azfunc.Start()  // blocking
+}
+```
+
+**Rationale:**
+1. **Guaranteed execution** - init() runs before main(), ensures registration happens
+2. **Decoupled packages** - Functions can be in separate packages, each with init()
+3. **Testing** - Can import function packages in tests without starting worker
+4. **Pattern precedent** - Similar to database/sql driver registration
+
 ## High-Level Architecture
 
 ```
