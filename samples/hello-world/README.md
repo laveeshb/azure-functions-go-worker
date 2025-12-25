@@ -84,25 +84,18 @@ func azure functionapp publish <your-function-app-name> --no-build
 
 ```
 hello-world/
-├── azure.yaml              # azd project configuration
-├── infra/                  # Bicep templates for Azure resources
-│   ├── main.bicep          # Main infrastructure template
-│   ├── abbreviations.json  # Resource naming abbreviations
-│   └── modules/
-│       └── function-app.bicep  # Function App module
-├── hooks/                  # azd lifecycle hooks
-│   ├── prepackage.ps1      # Windows build script
-│   └── prepackage.sh       # Linux/Mac build script
-└── src/                    # Function App source code
-    ├── main.go             # Go application code
-    ├── go.mod              # Go module file
-    ├── host.json           # Functions host configuration
+├── deploy.ps1          # Windows deployment script
+├── deploy.sh           # Linux/Mac deployment script
+└── src/                # Function App source code
+    ├── main.go         # Go application code
+    ├── go.mod          # Go module file
+    ├── host.json       # Functions host configuration
     ├── local.settings.json # Local development settings
-    ├── hello/              # Hello function
+    ├── hello/          # Hello function
     │   └── function.json
-    ├── health/             # Health function
+    ├── health/         # Health function
     │   └── function.json
-    └── echo/               # Echo function
+    └── echo/           # Echo function
         └── function.json
 ```
 
@@ -148,9 +141,7 @@ go build -o handler .
 GOOS=linux GOARCH=amd64 go build -o handler .
 ```
 
-This is handled automatically by:
-- **azd**: via `hooks/prepackage.ps1` or `hooks/prepackage.sh`
-- **deploy scripts**: built into `deploy.ps1` / `deploy.sh`
+This is handled automatically by the deploy scripts (`deploy.ps1` / `deploy.sh`).
 
 ### No Go Runtime Required on Azure
 
