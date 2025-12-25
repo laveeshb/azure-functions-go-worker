@@ -13,28 +13,6 @@ This document describes the architecture for a native Go language worker for Azu
 
 ## Design Decisions & Rationale
 
-### Why Go instead of Rust?
-
-| Factor | Go | Rust |
-|--------|-----|------|
-| Community demand | Higher - more requests on GitHub issues | Lower |
-| Learning curve | Gentle - most devs productive in days | Steep - ownership/lifetimes take weeks |
-| AWS Lambda precedent | Native Go support exists, migration appeal | No native Rust runtime |
-| Compile times | Fast (~seconds) | Slow (~minutes for large projects) |
-| Iteration speed | Faster prototyping | Slower due to strict compiler |
-
-**Decision:** Go offers faster time-to-market and broader adoption potential.
-
-### Why start fresh instead of forking radu-matei/azure-functions-golang-worker?
-
-1. **Staleness** - Last commit was 6+ years ago (2018)
-2. **API drift** - Azure Functions Host APIs have changed significantly
-3. **Protobuf changes** - The gRPC contract has new messages and fields
-4. **Go ecosystem evolution** - Go modules, generics, better error handling patterns
-5. **Technical debt** - Starting fresh avoids inheriting outdated patterns
-
-**Decision:** Clean slate allows modern Go practices and current Azure Functions APIs.
-
 ### Why out-of-process instead of in-process?
 
 1. **No host modifications required** - Host already supports language workers via gRPC
