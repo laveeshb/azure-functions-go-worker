@@ -156,22 +156,6 @@ This is handled automatically by:
 
 The compiled binary is **self-contained**. Go does not need to be installed on Azure - the binary includes everything it needs to run.
 
-## Useful Commands
-
-```bash
-# Deploy only code changes (faster)
-azd deploy
-
-# View deployed resources
-azd show
-
-# View logs
-func azure functionapp logstream <app-name>
-
-# Delete all resources
-azd down
-```
-
 ## Customization
 
 ### Adding a New Function
@@ -179,23 +163,7 @@ azd down
 1. Create a new folder under `src/` (e.g., `src/myfunction/`)
 2. Add `function.json` with bindings
 3. Add handler in `main.go`
-4. Redeploy with `azd deploy`
-
-### Example: Timer Trigger
-
-```json
-// src/mytimer/function.json
-{
-  "bindings": [
-    {
-      "name": "timer",
-      "type": "timerTrigger",
-      "direction": "in",
-      "schedule": "0 */5 * * * *"
-    }
-  ]
-}
-```
+4. Redeploy
 
 ## Troubleshooting
 
@@ -205,11 +173,6 @@ Make sure you have Go installed and in your PATH:
 $env:Path += ";C:\Program Files\Go\bin"
 go version
 ```
-
-**Deployment fails with azd:**
-1. Check `azd` is logged in: `azd auth login`
-2. Check Azure CLI is logged in: `az login`
-3. Verify subscription has permissions to create resources
 
 **Function returns 500 error after deployment:**
 1. Check the binary was built for Linux: `file handler` should show "ELF 64-bit LSB executable"
