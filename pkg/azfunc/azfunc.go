@@ -245,11 +245,31 @@ func Start() error {
 	maxMsgLength := flag.Int("grpcMaxMessageLength", 0, "Max gRPC message length")
 	flag.Parse()
 
+	// Fall back to environment variables if args not provided
 	if *port == 0 {
-		return fmt.Errorf("port is required (use --port)")
+		if envPort := os.Getenv("FUNCTIONS_GRPC_PORT"); envPort != "" {
+			if p, err := fmt.Sscanf(envPort, "%d", port); err == nil && p == 1 {
+				log.Printf("Using FUNCTIONS_GRPC_PORT from environment: %d", *port)
+			}
+		}
 	}
 	if *workerID == "" {
-		return fmt.Errorf("workerId is required (use --workerId)")
+		if envWorkerID := os.Getenv("FUNCTIONS_WORKER_ID"); envWorkerID != "" {
+			*workerID = envWorkerID
+			log.Printf("Using FUNCTIONS_WORKER_ID from environment: %s", *workerID)
+		}
+	}
+	if *requestID == "" {
+		if envRequestID := os.Getenv("AZURE_FUNCTIONS_REQUEST_ID"); envRequestID != "" {
+			*requestID = envRequestID
+		}
+	}
+
+	if *port == 0 {
+		return fmt.Errorf("port is required (use --port or set FUNCTIONS_GRPC_PORT)")
+	}
+	if *workerID == "" {
+		return fmt.Errorf("workerId is required (use --workerId or set FUNCTIONS_WORKER_ID)")
 	}
 
 	log.Printf("Starting Azure Functions Go Worker")

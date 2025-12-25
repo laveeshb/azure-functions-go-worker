@@ -94,7 +94,13 @@ azure-functions-go-worker/
 │   ├── registry/        # Function registration
 │   └── bindings/        # Type converters
 ├── proto/               # Protobuf definitions
-├── examples/            # Example functions
+├── examples/
+│   ├── httpTrigger/     # Native gRPC worker example
+│   └── httpHandler/     # Custom Handler HTTP example
+├── test/
+│   ├── integration/     # gRPC integration tests
+│   └── functest/        # func.exe E2E tests
+├── scripts/             # Build and test scripts
 └── docs/design/         # Architecture documentation
 ```
 
@@ -167,11 +173,11 @@ ctx.LogError("msg") // Log at Error level
 - [x] HTTP trigger support
 - [x] Basic SDK
 
-### Phase 2: Polish
-- [ ] End-to-end testing
-- [ ] Panic recovery
-- [ ] Improved error messages
-- [ ] CI/CD pipeline
+### Phase 2: Polish ✅
+- [x] End-to-end testing (gRPC integration + func.exe E2E)
+- [x] Panic recovery with stack traces
+- [x] Improved error messages
+- [x] CI/CD pipeline (GitHub Actions)
 
 ### Phase 3: More Bindings
 - [ ] Timer trigger
@@ -197,6 +203,12 @@ make tools
 
 # Run tests
 make test
+
+# Run integration tests (gRPC mock host)
+go test -v ./test/integration/...
+
+# Run E2E tests with func.exe (Windows PowerShell)
+.\scripts\run-e2e-test.ps1
 
 # Format code
 make fmt
