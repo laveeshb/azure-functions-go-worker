@@ -6,13 +6,12 @@ A complete, deployable Azure Functions application written in Go using Custom Ha
 
 - [Go 1.21+](https://golang.org/dl/)
 - [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli)
-- [Azure Developer CLI (azd)](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd) - for one-click deployment
 - [Azure Functions Core Tools v4](https://docs.microsoft.com/azure/azure-functions/functions-run-local) - for local testing
 - An Azure subscription with permissions to create resources
 
 ## Quick Start
 
-### Option 1: Deploy with Azure CLI Scripts (Recommended)
+### Deploy with Azure CLI Scripts
 
 These scripts handle cross-compilation and deployment automatically:
 
@@ -29,27 +28,6 @@ cd samples/hello-world
 ```
 
 These scripts auto-generate unique names for the Function App and Storage Account.
-
-### Option 2: Deploy with Azure Developer CLI (azd)
-
-> **Note:** Requires azd version 1.10+ with Go language support.
-
-```bash
-# Login to Azure
-azd auth login
-
-# Deploy everything (infrastructure + code)
-cd samples/hello-world
-azd up
-```
-
-**Inputs Required:**
-
-| Prompt | Description | Example |
-|--------|-------------|---------|
-| Environment name | Unique name for this deployment | `hello-world-dev` |
-| Azure Subscription | Select from your subscriptions | (interactive) |
-| Azure Location | Region to deploy to | `eastus` |
 
 ### Local Development
 
