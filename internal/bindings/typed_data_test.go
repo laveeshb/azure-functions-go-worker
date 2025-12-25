@@ -3,7 +3,7 @@ package bindings
 import (
 	"testing"
 
-	pb "github.com/Azure/azure-functions-go-worker/internal/rpc/proto"
+	pb "github.com/laveeshb/azure-functions-go-worker/internal/rpc/proto"
 )
 
 func TestTypedDataToString(t *testing.T) {

@@ -13,7 +13,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/Azure/azure-functions-go-worker/pkg/azfunc"
+	"github.com/laveeshb/azure-functions-go-worker/pkg/azfunc"
 )
 
 func main() {

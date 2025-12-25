@@ -5,7 +5,7 @@
 //	package main
 //
 //	import (
-//		"github.com/Azure/azure-functions-go-worker/pkg/azfunc"
+//		"github.com/laveeshb/azure-functions-go-worker/pkg/azfunc"
 //	)
 //
 //	func main() {
@@ -31,10 +31,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/Azure/azure-functions-go-worker/internal/bindings"
-	"github.com/Azure/azure-functions-go-worker/internal/registry"
-	"github.com/Azure/azure-functions-go-worker/internal/rpc"
-	pb "github.com/Azure/azure-functions-go-worker/internal/rpc/proto"
+	"github.com/laveeshb/azure-functions-go-worker/internal/bindings"
+	"github.com/laveeshb/azure-functions-go-worker/internal/registry"
+	"github.com/laveeshb/azure-functions-go-worker/internal/rpc"
+	pb "github.com/laveeshb/azure-functions-go-worker/internal/rpc/proto"
 )
 
 // Re-export types from internal packages for public use

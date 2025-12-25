@@ -11,7 +11,7 @@ package main
 
 import (
     "fmt"
-    "github.com/Azure/azure-functions-go-worker/pkg/azfunc"
+    "github.com/laveeshb/azure-functions-go-worker/pkg/azfunc"
 )
 
 func init() {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Azure/azure-functions-go-worker/internal/rpc/proto"
+	"github.com/laveeshb/azure-functions-go-worker/internal/rpc/proto"
 )
 
 // TestRegisterHttpFunction tests function registration

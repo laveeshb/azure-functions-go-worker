@@ -1,3 +1,3 @@
-module github.com/Azure/azure-functions-go-worker/samples/hello-world
+module github.com/laveeshb/azure-functions-go-worker/samples/hello-world
 
 go 1.21

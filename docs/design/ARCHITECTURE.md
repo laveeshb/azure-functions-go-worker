@@ -336,7 +336,7 @@ Developer-facing API for writing functions.
 package main
 
 import (
-    "github.com/Azure/azure-functions-go-worker/pkg/azfunc"
+    "github.com/laveeshb/azure-functions-go-worker/pkg/azfunc"
 )
 
 func main() {

@@ -1,4 +1,4 @@
-module github.com/Azure/azure-functions-go-worker
+module github.com/laveeshb/azure-functions-go-worker
 
 go 1.25.5
 

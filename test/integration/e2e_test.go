@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Azure/azure-functions-go-worker/internal/bindings"
-	"github.com/Azure/azure-functions-go-worker/internal/registry"
-	"github.com/Azure/azure-functions-go-worker/internal/rpc"
-	pb "github.com/Azure/azure-functions-go-worker/internal/rpc/proto"
+	"github.com/laveeshb/azure-functions-go-worker/internal/bindings"
+	"github.com/laveeshb/azure-functions-go-worker/internal/registry"
+	"github.com/laveeshb/azure-functions-go-worker/internal/rpc"
+	pb "github.com/laveeshb/azure-functions-go-worker/internal/rpc/proto"
 	"google.golang.org/grpc"
 )
 
