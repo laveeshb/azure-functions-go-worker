@@ -81,6 +81,52 @@ func (h *Handlers) HandleWorkerInit(ctx context.Context, requestID string, req *
 func (h *Handlers) HandleFunctionLoad(ctx context.Context, requestID string, req *pb.FunctionLoadRequest) (*pb.StreamingMessage, error) {
 	log.Printf("Received FunctionLoadRequest - Function ID: %s, Name: %s", req.FunctionId, req.Metadata.Name)
 
+	result := h.loadSingleFunction(ctx, req)
+
+	response := &pb.StreamingMessage{
+		RequestId: requestID,
+		Content: &pb.StreamingMessage_FunctionLoadResponse{
+			FunctionLoadResponse: &pb.FunctionLoadResponse{
+				FunctionId: req.FunctionId,
+				Result:     result,
+			},
+		},
+	}
+
+	return response, nil
+}
+
+// HandleFunctionLoadCollection handles batch FunctionLoadRequestCollection from the host.
+func (h *Handlers) HandleFunctionLoadCollection(ctx context.Context, requestID string, req *pb.FunctionLoadRequestCollection) (*pb.StreamingMessage, error) {
+	log.Printf("Received FunctionLoadRequestCollection - Loading %d functions", len(req.FunctionLoadRequests))
+
+	responses := make([]*pb.FunctionLoadResponse, 0, len(req.FunctionLoadRequests))
+
+	for _, loadReq := range req.FunctionLoadRequests {
+		result := h.loadSingleFunction(ctx, loadReq)
+		responses = append(responses, &pb.FunctionLoadResponse{
+			FunctionId: loadReq.FunctionId,
+			Result:     result,
+		})
+	}
+
+	response := &pb.StreamingMessage{
+		RequestId: requestID,
+		Content: &pb.StreamingMessage_FunctionLoadResponseCollection{
+			FunctionLoadResponseCollection: &pb.FunctionLoadResponseCollection{
+				FunctionLoadResponses: responses,
+			},
+		},
+	}
+
+	log.Printf("Sending FunctionLoadResponseCollection with %d responses", len(responses))
+	return response, nil
+}
+
+// loadSingleFunction loads a single function and returns the status result.
+func (h *Handlers) loadSingleFunction(ctx context.Context, req *pb.FunctionLoadRequest) *pb.StatusResult {
+	log.Printf("Loading function - ID: %s, Name: %s", req.FunctionId, req.Metadata.Name)
+
 	var result *pb.StatusResult
 
 	if h.executor != nil {
@@ -106,17 +152,7 @@ func (h *Handlers) HandleFunctionLoad(ctx context.Context, requestID string, req
 		}
 	}
 
-	response := &pb.StreamingMessage{
-		RequestId: requestID,
-		Content: &pb.StreamingMessage_FunctionLoadResponse{
-			FunctionLoadResponse: &pb.FunctionLoadResponse{
-				FunctionId: req.FunctionId,
-				Result:     result,
-			},
-		},
-	}
-
-	return response, nil
+	return result
 }
 
 // HandleInvocation handles the InvocationRequest from the host.

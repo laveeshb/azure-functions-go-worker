@@ -1,0 +1,7 @@
+{
+  "description": {
+    "language": "go",
+    "extensions": [".go", ".exe"],
+    "defaultExecutablePath": "worker.exe"
+  }
+}

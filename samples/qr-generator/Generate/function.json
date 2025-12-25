@@ -1,11 +1,13 @@
 {
+  "scriptFile": "../worker.exe",
+  "language": "go",
   "bindings": [
     {
       "authLevel": "anonymous",
       "type": "httpTrigger",
       "direction": "in",
       "name": "req",
-      "methods": ["post"],
+      "methods": ["get", "post"],
       "route": "generate"
     },
     {

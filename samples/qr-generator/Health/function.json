@@ -1,4 +1,6 @@
 {
+  "scriptFile": "../worker.exe",
+  "language": "go",
   "bindings": [
     {
       "authLevel": "anonymous",

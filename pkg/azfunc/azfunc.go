@@ -235,12 +235,49 @@ func executeHttpHandler(ctx context.Context, req *pb.InvocationRequest, handler 
 // This function blocks until the worker is terminated.
 func Start() error {
 	// Parse command line arguments
+	// The host sends both legacy (--port) and new (--functions-uri) flags
 	host := flag.String("host", "127.0.0.1", "gRPC server host")
 	port := flag.Int("port", 0, "gRPC server port")
 	workerID := flag.String("workerId", "", "Worker ID")
 	requestID := flag.String("requestId", "", "Request ID")
 	maxMsgLength := flag.Int("grpcMaxMessageLength", 0, "Max gRPC message length")
+
+	// Also accept the newer --functions-* prefixed arguments that the host sends
+	functionsURI := flag.String("functions-uri", "", "Functions URI (alternative to host/port)")
+	functionsWorkerID := flag.String("functions-worker-id", "", "Functions Worker ID")
+	functionsRequestID := flag.String("functions-request-id", "", "Functions Request ID")
+	functionsMsgLength := flag.Int("functions-grpc-max-message-length", 0, "Functions Max gRPC message length")
+
 	flag.Parse()
+
+	// Prefer new --functions-* flags if provided
+	if *functionsWorkerID != "" && *workerID == "" {
+		*workerID = *functionsWorkerID
+	}
+	if *functionsRequestID != "" && *requestID == "" {
+		*requestID = *functionsRequestID
+	}
+	if *functionsMsgLength > 0 && *maxMsgLength == 0 {
+		*maxMsgLength = *functionsMsgLength
+	}
+
+	// Parse functions-uri to extract host/port if provided
+	if *functionsURI != "" && *port == 0 {
+		// Parse URI like "http://127.0.0.1:12345/"
+		var uriHost string
+		var uriPort int
+		if _, err := fmt.Sscanf(*functionsURI, "http://%99[^:]:%d", &uriHost, &uriPort); err == nil {
+			*host = uriHost
+			*port = uriPort
+			log.Printf("Parsed functions-uri: host=%s, port=%d", *host, *port)
+		}
+	}
+
+	// Mark these as used to avoid compiler warnings
+	_ = functionsURI
+	_ = functionsWorkerID
+	_ = functionsRequestID
+	_ = functionsMsgLength
 
 	// Fall back to environment variables if args not provided
 	if *port == 0 {

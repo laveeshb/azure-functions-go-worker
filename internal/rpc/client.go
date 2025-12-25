@@ -143,6 +143,9 @@ func (c *Client) handleMessage(ctx context.Context, msg *pb.StreamingMessage) {
 	case *pb.StreamingMessage_FunctionLoadRequest:
 		response, err = c.handlers.HandleFunctionLoad(ctx, msg.RequestId, content.FunctionLoadRequest)
 
+	case *pb.StreamingMessage_FunctionLoadRequestCollection:
+		response, err = c.handlers.HandleFunctionLoadCollection(ctx, msg.RequestId, content.FunctionLoadRequestCollection)
+
 	case *pb.StreamingMessage_InvocationRequest:
 		response, err = c.handlers.HandleInvocation(ctx, msg.RequestId, content.InvocationRequest)
 
