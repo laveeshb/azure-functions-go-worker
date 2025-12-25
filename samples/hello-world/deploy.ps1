@@ -52,6 +52,7 @@ az storage account create `
     --resource-group $ResourceGroupName `
     --location $Location `
     --sku Standard_LRS `
+    --allow-blob-public-access false `
     --output none
 Write-Host "  Done!" -ForegroundColor Green
 
@@ -68,29 +69,11 @@ az functionapp create `
     --output none
 Write-Host "  Done!" -ForegroundColor Green
 
-# Create deployment package
-Write-Host "Step 5: Creating deployment package..." -ForegroundColor Yellow
-$zipPath = Join-Path $env:TEMP "go-func-deploy.zip"
-if (Test-Path $zipPath) { Remove-Item $zipPath }
-
+# Deploy using func CLI (handles permissions correctly)
+Write-Host "Step 5: Deploying to Azure..." -ForegroundColor Yellow
 Push-Location src
-Compress-Archive -Path @(
-    "handler",
-    "host.json",
-    "hello",
-    "health", 
-    "echo"
-) -DestinationPath $zipPath
+func azure functionapp publish $FunctionAppName --no-build
 Pop-Location
-Write-Host "  Done!" -ForegroundColor Green
-
-# Deploy the package
-Write-Host "Step 6: Deploying to Azure..." -ForegroundColor Yellow
-az functionapp deployment source config-zip `
-    --name $FunctionAppName `
-    --resource-group $ResourceGroupName `
-    --src $zipPath `
-    --output none
 Write-Host "  Done!" -ForegroundColor Green
 
 # Get the URL

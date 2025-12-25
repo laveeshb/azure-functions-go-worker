@@ -4,8 +4,16 @@ name: azure-functions-go-worker-sample
 metadata:
   template: azure-functions-go-worker@0.1.0
 
+hooks:
+  prepackage:
+    windows:
+      shell: pwsh
+      run: ./hooks/prepackage.ps1
+    posix:
+      shell: sh
+      run: ./hooks/prepackage.sh
+
 services:
   api:
     project: ./src
-    language: go
     host: function
