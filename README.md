@@ -83,6 +83,20 @@ func start
 
 Then visit: http://localhost:7071/api/HttpTrigger?name=Gopher
 
+## Deploy to Azure
+
+A complete deployable sample with one-click Azure deployment is available:
+
+```bash
+cd samples/hello-world
+azd up
+```
+
+See [samples/hello-world/README.md](samples/hello-world/README.md) for full deployment documentation including:
+- Azure Developer CLI (azd) deployment
+- Alternative deployment scripts (PowerShell/Bash)
+- Infrastructure as Code (Bicep templates)
+
 ## Project Structure
 
 ```
@@ -97,6 +111,8 @@ azure-functions-go-worker/
 ├── examples/
 │   ├── httpTrigger/     # Native gRPC worker example
 │   └── httpHandler/     # Custom Handler HTTP example
+├── samples/
+│   └── hello-world/     # Deployable sample with Azure templates
 ├── test/
 │   ├── integration/     # gRPC integration tests
 │   └── functest/        # func.exe E2E tests
@@ -188,7 +204,7 @@ ctx.LogError("msg") // Log at Error level
 ### Phase 4: Production Ready
 - [ ] Performance optimization
 - [ ] Documentation
-- [ ] Azure deployment support
+- [x] Azure deployment support (see [samples/hello-world](samples/hello-world/))
 - [ ] VS Code integration
 
 ## Contributing
