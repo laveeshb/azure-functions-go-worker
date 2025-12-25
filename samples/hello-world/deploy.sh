@@ -63,6 +63,7 @@ az storage account create \
     --resource-group "$RESOURCE_GROUP" \
     --location "$LOCATION" \
     --sku Standard_LRS \
+    --allow-blob-public-access false \
     --output none
 echo "  Done!"
 
@@ -79,22 +80,11 @@ az functionapp create \
     --output none
 echo "  Done!"
 
-# Create deployment package
-echo "Step 5: Creating deployment package..."
-ZIP_PATH="/tmp/go-func-deploy.zip"
-rm -f "$ZIP_PATH"
+# Deploy using func CLI (handles permissions correctly)
+echo "Step 5: Deploying to Azure..."
 cd src
-zip -r "$ZIP_PATH" handler host.json hello health echo
+func azure functionapp publish "$FUNCTION_APP_NAME" --no-build
 cd ..
-echo "  Done!"
-
-# Deploy the package
-echo "Step 6: Deploying to Azure..."
-az functionapp deployment source config-zip \
-    --name "$FUNCTION_APP_NAME" \
-    --resource-group "$RESOURCE_GROUP" \
-    --src "$ZIP_PATH" \
-    --output none
 echo "  Done!"
 
 # Get the URL

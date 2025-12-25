@@ -57,13 +57,17 @@ These scripts auto-generate unique names for the Function App and Storage Accoun
 
 ### Local Development
 
-```bash
-# Build for local testing
+```powershell
+# Windows - Build and run locally
 cd src
-go build -o handler.exe .   # Windows
-go build -o handler .       # Linux/Mac
+go build -o handler.exe .
+func start
+```
 
-# Run locally with Azure Functions Core Tools
+```bash
+# Linux/Mac - Build and run locally
+cd src
+go build -o handler .
 func start
 ```
 
@@ -71,6 +75,28 @@ Then visit:
 - http://localhost:7071/api/hello?name=World
 - http://localhost:7071/api/health
 - http://localhost:7071/api/echo?foo=bar
+
+### Manual Deployment (Cross-Compilation)
+
+If deploying manually without the scripts, you must cross-compile for Linux since Azure Functions Consumption Plan runs on Linux:
+
+```powershell
+# Windows PowerShell - Cross-compile for Linux
+cd src
+$env:GOOS = "linux"
+$env:GOARCH = "amd64"
+go build -o handler .
+func azure functionapp publish <your-function-app-name> --no-build
+```
+
+```bash
+# Linux/Mac - Build for Linux
+cd src
+GOOS=linux GOARCH=amd64 go build -o handler .
+func azure functionapp publish <your-function-app-name> --no-build
+```
+
+**Important:** The binary must be named `handler` (not `handler.exe`) to match the `host.json` configuration.
 
 ## Functions
 
