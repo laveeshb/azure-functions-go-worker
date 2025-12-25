@@ -2,8 +2,6 @@
 
 A native Go language worker for Azure Functions, enabling first-class Go support (not Custom Handlers).
 
-> ⚠️ **Early Development** - This project is in active development and not yet ready for production use.
-
 ## Overview
 
 This worker allows you to write Azure Functions in Go with an idiomatic API:
