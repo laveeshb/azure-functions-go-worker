@@ -7,11 +7,13 @@ A sample Azure Functions app that generates QR codes, built with the Go gRPC wor
 - [Features](#features)
 - [Privacy](#privacy)
 - [Prerequisites](#prerequisites)
+- [Important: Custom Runtime Flag](#important-custom-runtime-flag)
 - [Local Development](#local-development)
 - [API Reference](#api-reference)
 - [Deploy to Azure](#deploy-to-azure)
   - [Quick Start (Turnkey Script)](#quick-start-turnkey-script)
   - [Script Options](#script-options)
+  - [Hosting Plans](#hosting-plans)
   - [Manual Deployment](#manual-deployment)
   - [Redeployment](#redeployment)
   - [Clean Up](#clean-up)
@@ -44,7 +46,32 @@ This application does not log, save, or transmit any user data to third parties.
 
 - Go 1.21 or later
 - Azure Functions Core Tools v4
+- Azure CLI (for deployment)
 - Azure subscription (for deployment)
+
+## Important: Custom Runtime Flag
+
+Since Go is not a built-in Azure Functions runtime, you must use the `--custom` flag when:
+
+1. **Running locally**: `func start --custom`
+2. **Publishing to Azure**: `func azure functionapp publish <app-name> --custom`
+
+The deployment scripts in this sample handle this automatically. If you're deploying manually, always include the `--custom` flag.
+
+Additionally, your `host.json` must include a `customHandler` section:
+
+```json
+{
+  "customHandler": {
+    "description": {
+      "defaultExecutablePath": "worker",
+      "workingDirectory": "",
+      "arguments": []
+    },
+    "enableForwardingHttpRequest": false
+  }
+}
+```
 
 ## Local Development
 
@@ -59,7 +86,7 @@ go build -o samples/qr-generator/worker.exe ./samples/qr-generator
 
 ```bash
 cd samples/qr-generator
-func start
+func start --custom
 ```
 
 ### Test
@@ -301,7 +328,8 @@ GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o worker .
 
 ```bash
 cd samples/qr-generator
-func azure functionapp publish $FUNCTION_APP --no-build
+# The --custom flag is required because Go is not a built-in runtime
+func azure functionapp publish $FUNCTION_APP --no-build --custom
 ```
 
 #### Step 6: Test Your Deployment
@@ -324,9 +352,9 @@ echo "https://$FUNCTION_APP.azurewebsites.net/api/generate"
 After making code changes, redeploy with:
 
 ```bash
-# Rebuild and redeploy
+# Rebuild and redeploy (--custom flag required for Go)
 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o worker .
-func azure functionapp publish $FUNCTION_APP --no-build
+func azure functionapp publish $FUNCTION_APP --no-build --custom
 
 # Or use the script
 ./deploy.sh -n $FUNCTION_APP --skip-resources
@@ -345,10 +373,13 @@ az group delete --name qr-generator-rg --yes --no-wait
 | Issue | Solution |
 |-------|----------|
 | "Function app not found" | Ensure the function app name is globally unique |
+| "Can't determine project language" | Add `--custom` flag: `func azure functionapp publish <name> --custom` |
+| "Worker runtime cannot be 'None'" | Set app setting: `FUNCTIONS_WORKER_RUNTIME=custom` |
 | Binary won't start | Verify you built for Linux (`GOOS=linux GOARCH=amd64`) |
 | Functions not discovered | Check `function.json` files exist in subdirectories |
 | 500 errors | Check logs: `func azure functionapp logstream $FUNCTION_APP` |
 | Cold start slow | First request after idle may take 10-30s on Consumption plan |
+| Storage account policy error | Your subscription may require `--allow-blob-public-access false` |
 
 ## Using the QR Code
 

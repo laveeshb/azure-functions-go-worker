@@ -287,6 +287,7 @@ if [[ "$SKIP_RESOURCES" != "true" ]]; then
         --resource-group "$RESOURCE_GROUP" \
         --location "$LOCATION" \
         --sku Standard_LRS \
+        --allow-blob-public-access false \
         --output none
     print_success "Storage account created: $STORAGE_ACCOUNT_NAME"
 
@@ -373,7 +374,9 @@ print_step "Deploying to Azure"
 cd "$SCRIPT_DIR"
 print_info "Publishing function app..."
 
-func azure functionapp publish "$FUNCTION_APP_NAME" --no-build
+# The --custom flag is required because Go is not a built-in Azure Functions runtime.
+# This tells func to look for a custom handler configuration.
+func azure functionapp publish "$FUNCTION_APP_NAME" --no-build --custom
 
 print_success "Deployment completed successfully!"
 

@@ -285,6 +285,7 @@ if (-not $SkipResourceCreation) {
         --resource-group $ResourceGroup `
         --location $Location `
         --sku Standard_LRS `
+        --allow-blob-public-access false `
         --output none
 
     if ($LASTEXITCODE -ne 0) {
@@ -394,7 +395,9 @@ Push-Location $ScriptDir
 try {
     Write-Info "Publishing function app..."
 
-    func azure functionapp publish $FunctionAppName --no-build
+    # The --custom flag is required because Go is not a built-in Azure Functions runtime.
+    # This tells func to look for a custom handler configuration.
+    func azure functionapp publish $FunctionAppName --no-build --custom
 
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Deployment failed"
