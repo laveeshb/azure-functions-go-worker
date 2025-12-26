@@ -1,9 +1,6 @@
 #!/bin/bash
 # Azure Functions Go Worker - QR Generator Deploy Script
 # Deploys a Go Function App to Azure using Custom Handler
-#
-# This sample uses Custom Handler (HTTP-based) which works with Azure Functions.
-# For the gRPC version that deploys to Azure Container Apps, see ../qr-generator-grpc/
 
 set -e
 
