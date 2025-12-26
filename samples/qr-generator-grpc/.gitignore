@@ -1,7 +1,0 @@
-# Build artifacts
-worker
-worker.exe
-*.exe
-
-# Local settings (contains connection strings)
-local.settings.json

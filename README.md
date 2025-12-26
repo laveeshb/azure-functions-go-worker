@@ -1,316 +1,190 @@
 # Azure Functions Go Worker
 
-A native Go language worker for Azure Functions, enabling first-class Go support (not Custom Handlers).
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Getting Started](#getting-started)
-- [Samples](#samples)
-- [Deploy to Azure](#deploy-to-azure)
-- [Project Structure](#project-structure)
-- [API Reference](#api-reference)
-- [Roadmap](#roadmap)
-- [Development](#development)
-- [Related Projects](#related-projects)
-- [License](#license)
+Run Go functions on Azure Functions using the [Custom Handler](https://learn.microsoft.com/en-us/azure/azure-functions/functions-custom-handlers) pattern.
 
 ## Overview
 
-This worker allows you to write Azure Functions in Go with an idiomatic API:
+Custom Handlers allow you to write Azure Functions in any language that can run an HTTP server. This project provides samples and patterns for writing Go functions that run on Azure Functions.
 
 ```go
 package main
 
 import (
+    "encoding/json"
     "fmt"
-    "github.com/laveeshb/azure-functions-go-worker/pkg/azfunc"
+    "net/http"
+    "os"
 )
 
-func init() {
-    azfunc.RegisterHttpFunction("HelloWorld", handleHello)
-}
-
 func main() {
-    azfunc.Start()
+    listenAddr := ":8080"
+    if val, ok := os.LookupEnv("FUNCTIONS_CUSTOMHANDLER_PORT"); ok {
+        listenAddr = ":" + val
+    }
+
+    http.HandleFunc("/api/HelloWorld", helloHandler)
+    http.ListenAndServe(listenAddr, nil)
 }
 
-func handleHello(ctx *azfunc.Context, req *azfunc.HttpRequest) (*azfunc.HttpResponse, error) {
-    name := req.GetQuery("name")
+func helloHandler(w http.ResponseWriter, r *http.Request) {
+    name := r.URL.Query().Get("name")
     if name == "" {
         name = "World"
     }
-    return azfunc.OK(fmt.Sprintf("Hello, %s!", name)), nil
+    
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]string{
+        "message": fmt.Sprintf("Hello, %s!", name),
+    })
 }
 ```
 
 ## Features
 
-- **Native Go support** - Write functions in pure Go, compiled to a single binary
-- **Idiomatic API** - Familiar patterns for Go developers
-- **HTTP triggers** - Full support for HTTP request/response handling
-- **Fast cold starts** - Go's quick startup time benefits serverless workloads
-- **Type safety** - Compile-time checks, no runtime reflection magic
+- **Pure Go** - Use standard `net/http`, no special SDK required
+- **Fast cold starts** - Compiled Go binaries start in milliseconds
+- **Azure Functions hosting** - Deploy to Consumption, Premium, or Dedicated plans
+- **Simple deployment** - Single binary + `host.json` + function metadata
 
-## Architecture
+## Samples
 
-```
-Azure Functions Host <──gRPC──> Go Worker <──> Your Go Functions
-```
-
-The worker communicates with the Azure Functions Host via gRPC using the standard [language worker protocol](https://github.com/Azure/azure-functions-language-worker-protobuf).
-
-## Deployment Options
-
-This project supports **two deployment models** to give you flexibility:
-
-| Feature | Custom Handler | gRPC Worker (Container) |
-|---------|----------------|------------------------|
-| **Deploy To** | Azure Functions (PaaS) | Azure Container Apps |
-| **Protocol** | HTTP | gRPC (native) |
-| **Triggers Supported** | HTTP only (practical) | All (HTTP, Queue, Blob, Timer) |
-| **Setup Complexity** | Simple | More involved |
-| **Pricing Model** | Consumption (pay-per-exec) | Container-based (KEDA scale-to-zero) |
-| **Cold Start** | ~500ms-2s | ~2-5s (container pull) |
-| **Dependencies** | None (net/http only) | gRPC, protobuf |
-| **Binding Support** | Manual JSON parsing | Typed bindings |
-
-### Why Can't gRPC Work in Managed Azure Functions?
-
-Azure Functions (PaaS) only supports languages on its **runtime allowlist**:
-
-| Supported Runtimes | Status |
-|-------------------|--------|
-| `dotnet`, `dotnet-isolated` | ✅ Built-in |
-| `node`, `python`, `powershell` | ✅ Built-in |
-| `java` | ✅ Built-in |
-| `custom` | ✅ HTTP Custom Handler |
-| `go` | ❌ **Not on allowlist** |
-
-When you deploy to Azure Functions:
-1. The platform validates `FUNCTIONS_WORKER_RUNTIME` against the allowlist
-2. Setting `FUNCTIONS_WORKER_RUNTIME=go` fails with "unknown runtime"
-3. The gRPC endpoint parameters are only provided to allowlisted workers
-
-**Solution:** We offer two deployment paths:
-
-1. **Custom Handler** → Deploy to Azure Functions (simple, HTTP-only)
-2. **gRPC in Container** → Deploy to Azure Container Apps (full features)
-
-### When to Use Each
-
-| Use Case | Recommendation |
-|----------|----------------|
-| HTTP APIs, webhooks | Custom Handler → Azure Functions |
-| Queue/Blob/Timer triggers | gRPC Worker → Azure Container Apps |
-| Quick prototypes | Custom Handler |
-| Production event-driven apps | gRPC Worker in container |
-| Minimal dependencies | Custom Handler |
+| Sample | Description |
+|--------|-------------|
+| [hello-world-custom-handler](samples/hello-world-custom-handler/) | Basic "Hello World" HTTP function |
+| [qr-generator-custom-handler](samples/qr-generator-custom-handler/) | QR code generator with health check endpoint |
 
 ## Getting Started
 
 ### Prerequisites
 
 - Go 1.21 or later
-- Azure Functions Core Tools v4
-- Protocol Buffers compiler (for development only)
+- [Azure Functions Core Tools v4](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local)
+- Azure subscription (for deployment)
 
-### Building
-
-```bash
-# Clone the repository
-git clone https://github.com/laveeshb/azure-functions-go-worker.git
-cd azure-functions-go-worker
-
-# Generate protobuf code (if needed)
-make generate
-
-# Build the worker
-make build
-
-# Build the example
-make example
-```
-
-### Running the Example
+### Local Development
 
 ```bash
-cd samples/hello-world-grpc
-go build -o worker.exe .
+# Clone and navigate to a sample
+cd samples/hello-world-custom-handler
+
+# Build the Go binary (Linux for Azure, Windows for local)
+# For local Windows development:
+go build -o handler.exe .
+
+# For Azure deployment:
+$env:GOOS = "linux"
+$env:GOARCH = "amd64"
+go build -o handler .
+
+# Run locally with Azure Functions Core Tools
 func start
 ```
 
-Then visit: http://localhost:7071/api/hello?name=Gopher
+Then visit: http://localhost:7071/api/HelloWorld?name=Gopher
 
-## Samples
+### Project Structure
 
-| Sample | Protocol | Deploy To | Description |
-|--------|----------|-----------|-------------|
-| [hello-world-grpc](samples/hello-world-grpc/) | gRPC | Local only | Hello World using the native gRPC worker |
-| [hello-world-custom-handler](samples/hello-world-custom-handler/) | HTTP | Azure Functions | Hello World using Custom Handler |
-| [qr-generator-grpc](samples/qr-generator-grpc/) | gRPC | Azure Container Apps | QR code generator with full gRPC support |
-| [qr-generator-custom-handler](samples/qr-generator-custom-handler/) | HTTP | Azure Functions | QR code generator for Azure deployment |
+```
+samples/hello-world-custom-handler/
+├── main.go                # Your Go HTTP server
+├── host.json              # Custom Handler configuration
+├── local.settings.json    # Local development settings
+└── HelloWorld/
+    └── function.json      # Function trigger/binding metadata
+```
+
+### Key Files
+
+**host.json** - Configure the Custom Handler:
+```json
+{
+  "version": "2.0",
+  "customHandler": {
+    "description": {
+      "defaultExecutablePath": "handler",
+      "workingDirectory": "",
+      "arguments": []
+    },
+    "enableForwardingHttpRequest": true
+  }
+}
+```
+
+**function.json** - Define the function trigger:
+```json
+{
+  "bindings": [
+    {
+      "authLevel": "anonymous",
+      "type": "httpTrigger",
+      "direction": "in",
+      "name": "req",
+      "methods": ["get", "post"],
+      "route": "HelloWorld"
+    },
+    {
+      "type": "http",
+      "direction": "out",
+      "name": "res"
+    }
+  ]
+}
+```
 
 ## Deploy to Azure
 
-A complete deployable sample with Azure deployment scripts is available:
+### Quick Deploy
 
 ```powershell
-# Windows
-cd samples/hello-world-custom-handler
-.\deploy.ps1 -ResourceGroupName "rg-gofunc" -Location "eastus"
+cd samples/qr-generator-custom-handler
+.\deploy.ps1 -ResourceGroupName "rg-my-functions" -Location "eastus"
 ```
 
-```bash
-# Linux/Mac
-cd samples/hello-world-custom-handler
-./deploy.sh -g "rg-gofunc" -l "eastus"
+### Manual Deployment
+
+```powershell
+# 1. Build for Linux
+$env:GOOS = "linux"
+$env:GOARCH = "amd64"
+go build -o handler .
+
+# 2. Create Azure resources
+az group create --name rg-my-functions --location eastus
+az functionapp create --name my-go-func --resource-group rg-my-functions `
+    --storage-account mystorageacct --consumption-plan-location eastus `
+    --runtime custom --functions-version 4
+
+# 3. Deploy
+func azure functionapp publish my-go-func
 ```
 
-See [samples/hello-world-custom-handler/README.md](samples/hello-world-custom-handler/README.md) for deployment documentation.
-
-## Project Structure
+## How Custom Handlers Work
 
 ```
-azure-functions-go-worker/
-├── cmd/worker/          # Worker entry point
-├── pkg/azfunc/          # Public SDK (stable API)
-├── internal/
-│   ├── rpc/             # gRPC client and handlers
-│   ├── registry/        # Function registration
-│   └── bindings/        # Type converters
-├── proto/               # Protobuf definitions
-├── samples/
-│   ├── hello-world-grpc/              # Hello World (gRPC, local only)
-│   ├── hello-world-custom-handler/    # Hello World (HTTP, Azure Functions)
-│   ├── qr-generator-grpc/             # QR Generator (gRPC, Azure Container Apps)
-│   └── qr-generator-custom-handler/   # QR Generator (HTTP, Azure Functions)
-├── test/
-│   ├── integration/     # gRPC integration tests
-│   └── functest/        # func.exe E2E tests
-├── scripts/             # Build and test scripts
-└── docs/design/         # Architecture documentation
+HTTP Request → Azure Functions Host → Custom Handler (Go binary) → Your Code
+                       ↓
+              function.json defines
+              triggers and bindings
 ```
 
-## API Reference
+1. The Azure Functions Host receives incoming requests
+2. It routes them to your Go binary based on `function.json` metadata
+3. Your Go code handles the request using standard `net/http`
+4. Response flows back through the Host
 
-### Registering Functions
+With `enableForwardingHttpRequest: true`, HTTP requests are forwarded as-is to your handler, making it easy to use standard Go HTTP patterns.
 
-```go
-// HTTP trigger
-azfunc.RegisterHttpFunction("FunctionName", handler)
-```
+## Limitations
 
-### HTTP Handler Signature
+Custom Handlers work great for **HTTP triggers**. For other trigger types (Queue, Blob, Timer), the request/response format is different - see [Microsoft's documentation](https://learn.microsoft.com/en-us/azure/azure-functions/functions-custom-handlers#request-payload).
 
-```go
-func handler(ctx *azfunc.Context, req *azfunc.HttpRequest) (*azfunc.HttpResponse, error)
-```
+For typical HTTP APIs and webhooks, Custom Handlers provide an excellent developer experience.
 
-### HttpRequest
+## Related Resources
 
-```go
-req.Method              // HTTP method (GET, POST, etc.)
-req.URL                 // Request URL
-req.Headers             // map[string]string
-req.GetHeader("name")   // Get header (case-insensitive)
-req.GetQuery("param")   // Get query parameter
-req.GetParam("route")   // Get route parameter
-req.Body                // []byte
-req.BodyAsString()      // string
-```
-
-### HttpResponse
-
-```go
-// Quick responses
-azfunc.OK(body)                    // 200 OK
-azfunc.Created(body)               // 201 Created
-azfunc.BadRequest("message")       // 400 Bad Request
-azfunc.NotFound("message")         // 404 Not Found
-azfunc.InternalServerError("msg")  // 500 Internal Server Error
-
-// Custom response
-resp := &azfunc.HttpResponse{
-    StatusCode: 201,
-    Headers:    map[string]string{"X-Custom": "value"},
-    Body:       myData,  // string, []byte, or any JSON-serializable value
-}
-
-// Fluent API
-azfunc.OK(data).WithHeader("X-Custom", "value").WithContentType("application/json")
-```
-
-### Context
-
-```go
-ctx.InvocationID    // Unique ID for this invocation
-ctx.FunctionID      // Function identifier
-ctx.Log("message")  // Log at Information level
-ctx.LogDebug("msg") // Log at Debug level
-ctx.LogWarning("m") // Log at Warning level
-ctx.LogError("msg") // Log at Error level
-```
-
-## Roadmap
-
-### Phase 1: MVP ✅
-- [x] Project structure
-- [x] gRPC client implementation
-- [x] Worker lifecycle (init, load, invoke)
-- [x] HTTP trigger support
-- [x] Basic SDK
-
-### Phase 2: Polish ✅
-- [x] End-to-end testing (gRPC integration + func.exe E2E)
-- [x] Panic recovery with stack traces
-- [x] Improved error messages
-- [x] CI/CD pipeline (GitHub Actions)
-
-### Phase 3: More Bindings
-- [ ] Timer trigger
-- [ ] Queue trigger (Storage Queue, Service Bus)
-- [ ] Blob input/output
-- [ ] Cosmos DB bindings
-
-### Phase 4: Production Ready
-- [ ] Performance optimization
-- [ ] Documentation
-- [x] Azure deployment support (see [samples/hello-world](samples/hello-world/))
-- [ ] VS Code integration
-
-## Development
-
-```bash
-# Install development tools
-make tools
-
-# Run tests
-make test
-
-# Run integration tests (gRPC mock host)
-go test -v ./test/integration/...
-
-# Run E2E tests with func.exe (Windows PowerShell)
-.\scripts\run-e2e-test.ps1
-
-# Format code
-make fmt
-
-# Run linter
-make lint
-```
-
-See [docs/design/ARCHITECTURE.md](docs/design/ARCHITECTURE.md) for detailed architecture and design decisions.
-
-## Related Projects
-
+- [Azure Functions Custom Handlers](https://learn.microsoft.com/en-us/azure/azure-functions/functions-custom-handlers)
+- [Azure Functions Core Tools](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local)
 - [Azure Functions Host](https://github.com/Azure/azure-functions-host)
-- [Azure Functions Python Worker](https://github.com/Azure/azure-functions-python-worker)
-- [Azure Functions Node.js Worker](https://github.com/Azure/azure-functions-nodejs-worker)
-- [Language Worker Protocol](https://github.com/Azure/azure-functions-language-worker-protobuf)
 
 ## License
 
