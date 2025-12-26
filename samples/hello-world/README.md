@@ -1,6 +1,18 @@
-# Azure Functions Go Worker - Hello World Sample
+# Hello World - Azure Functions Go Sample
 
-A complete, deployable Azure Functions application written in Go using Custom Handlers.
+A complete, deployable Azure Functions application written in Go using **Custom Handlers**.
+
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Functions](#functions)
+- [Project Structure](#project-structure)
+- [Azure Resources Created](#azure-resources-created)
+- [What Gets Deployed](#what-gets-deployed)
+- [Customization](#customization)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
 
 ## Prerequisites
 

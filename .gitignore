@@ -31,8 +31,5 @@ Thumbs.db
 local.settings.json
 
 # Build outputs
-examples/*/worker.exe
-
-# Generated proto files (optional - some prefer to commit these)
-# internal/rpc/proto/*.pb.go
-# internal/rpc/proto/**/*.pb.go
+handler
+handler.exe
