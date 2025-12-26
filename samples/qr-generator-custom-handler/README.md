@@ -44,8 +44,8 @@ That's it! The script will:
 After deployment, visit the URL shown in the output:
 
 ```
-Interactive UI: https://func-qr-xxxxx.azurewebsites.net/api/generate
-Health check:   https://func-qr-xxxxx.azurewebsites.net/api/health
+Landing Page:   https://func-qr-xxxxx.azurewebsites.net/
+Health check:   https://func-qr-xxxxx.azurewebsites.net/health
 ```
 
 ## Features
@@ -61,11 +61,15 @@ Health check:   https://func-qr-xxxxx.azurewebsites.net/api/health
 
 ## API Reference
 
-### GET /api/generate
+### GET /
 
 Returns an interactive HTML page for generating QR codes in the browser.
 
-### POST /api/generate
+### GET /generate
+
+Same as GET / - returns the interactive HTML page.
+
+### POST /generate
 
 Generates a QR code and returns it as a base64-encoded PNG.
 
@@ -92,7 +96,7 @@ Generates a QR code and returns it as a base64-encoded PNG.
 | `content` | string | Yes | Text or URL to encode |
 | `size` | int | No | Image size in pixels (default: 256, max: 1024) |
 
-### GET /api/health
+### GET /health
 
 Health check endpoint.
 
@@ -158,19 +162,19 @@ func start
 ```
 
 Then visit:
-- Interactive UI: http://localhost:7071/api/generate
-- Health check: http://localhost:7071/api/health
+- Landing Page: http://localhost:7071/
+- Health check: http://localhost:7071/health
 
 ### Using curl
 
 ```bash
 # Generate a QR code
-curl -X POST http://localhost:7071/api/generate \
+curl -X POST http://localhost:7071/generate \
   -H "Content-Type: application/json" \
   -d '{"content": "Hello World!", "size": 256}'
 
 # Health check
-curl http://localhost:7071/api/health
+curl http://localhost:7071/health
 ```
 
 ## Why Custom Handler?

@@ -157,11 +157,11 @@ Write-Host ""
 Write-Host "Function App URL: https://$url" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Try it out:" -ForegroundColor Yellow
-Write-Host "  Interactive UI: https://$url/api/generate"
-Write-Host "  Health check:   curl https://$url/api/health"
+Write-Host "  Landing Page:   https://$url/"
+Write-Host "  Health check:   curl https://$url/health"
 Write-Host ""
 Write-Host "API usage:" -ForegroundColor Yellow
-Write-Host "  curl -X POST https://$url/api/generate \"
+Write-Host "  curl -X POST https://$url/generate \"
 Write-Host "    -H 'Content-Type: application/json' \"
 Write-Host "    -d '{\"content\": \"https://example.com\", \"size\": 256}'"
 Write-Host ""

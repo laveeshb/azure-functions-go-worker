@@ -10,9 +10,10 @@
 // after the response is sent. No cookies, no tracking, no data retention.
 //
 // Endpoints:
-// - GET  /api/generate - Interactive web page for QR code generation
-// - POST /api/generate - API endpoint to generate a QR code from text/URL
-// - GET  /api/health   - Health check endpoint
+// - GET  /          - Landing page (same as /generate)
+// - GET  /generate  - Interactive web page for QR code generation
+// - POST /generate  - API endpoint to generate a QR code from text/URL
+// - GET  /health    - Health check endpoint
 //
 // To run locally:
 // 1. Build: go build -o handler.exe .
