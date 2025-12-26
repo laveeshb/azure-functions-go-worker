@@ -64,7 +64,20 @@ Write-Host "Step 1: Building Go binary for Linux..." -ForegroundColor Yellow
 $env:GOOS = "linux"
 $env:GOARCH = "amd64"
 $env:CGO_ENABLED = "0"
-go build -o handler .
+
+# Try to find Go executable
+$goCmd = Get-Command go -ErrorAction SilentlyContinue
+if ($goCmd) {
+    $goPath = $goCmd.Source
+} elseif (Test-Path "C:\Program Files\Go\bin\go.exe") {
+    $goPath = "C:\Program Files\Go\bin\go.exe"
+} elseif (Test-Path "$env:USERPROFILE\go\bin\go.exe") {
+    $goPath = "$env:USERPROFILE\go\bin\go.exe"
+} else {
+    throw "Go executable not found. Please install Go or add it to PATH."
+}
+
+& $goPath build -o handler .
 if ($LASTEXITCODE -ne 0) {
     throw "Failed to build Go binary"
 }
