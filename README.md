@@ -50,8 +50,8 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 
 | Sample | Description |
 |--------|-------------|
-| [hello-world-custom-handler](samples/hello-world-custom-handler/) | Basic "Hello World" HTTP function |
-| [qr-generator-custom-handler](samples/qr-generator-custom-handler/) | QR code generator with health check endpoint |
+| [hello-world](samples/hello-world/) | Basic "Hello World" HTTP function |
+| [qr-generator](samples/qr-generator/) | QR code generator with health check endpoint |
 
 ## Quick Start
 
@@ -79,7 +79,7 @@ This checks for and installs:
 
 ```powershell
 # Navigate to a sample
-cd samples/qr-generator-custom-handler
+cd samples/qr-generator
 
 # Build for local development (Windows)
 go build -o handler.exe .
@@ -128,7 +128,7 @@ cd azure-functions-go-worker
 ./scripts/install-prereqs.sh     # Linux/Mac
 
 # Navigate to a sample
-cd samples/hello-world-custom-handler
+cd samples/hello-world
 
 # Build the Go binary
 go build -o handler.exe .    # Windows
@@ -143,7 +143,7 @@ Then visit: http://localhost:7071/api/HelloWorld?name=Gopher
 ### Project Structure
 
 ```
-samples/hello-world-custom-handler/
+samples/hello-world/
 ├── main.go                # Your Go HTTP server
 ├── host.json              # Custom Handler configuration
 ├── local.settings.json    # Local development settings
