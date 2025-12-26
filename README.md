@@ -2,6 +2,25 @@
 
 Run Go functions on Azure Functions using the [Custom Handler](https://learn.microsoft.com/en-us/azure/azure-functions/functions-custom-handlers) pattern.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Samples](#samples)
+- [Quick Start](#quick-start)
+- [Detailed Guide](#detailed-guide)
+  - [Prerequisites](#prerequisites)
+  - [Local Development](#local-development)
+  - [Project Structure](#project-structure)
+  - [Key Files](#key-files)
+- [Deploy to Azure](#deploy-to-azure)
+  - [Quick Deploy](#quick-deploy)
+  - [Manual Deployment](#manual-deployment)
+- [How Custom Handlers Work](#how-custom-handlers-work)
+- [Limitations](#limitations)
+- [Related Resources](#related-resources)
+- [License](#license)
+
 ## Overview
 
 Custom Handlers allow you to write Azure Functions in any language that can run an HTTP server. This project provides samples and patterns for writing Go functions that run on Azure Functions.
