@@ -40,14 +40,30 @@ func main() {
 		port = "8080"
 	}
 
-	// Register function handlers
-	http.HandleFunc("/api/generate", handleGenerate)
-	http.HandleFunc("/api/health", handleHealth)
+	// Register function handlers (without /api prefix since routePrefix is empty)
+	http.HandleFunc("/generate", handleGenerate)
+	http.HandleFunc("/health", handleHealth)
+	http.HandleFunc("/", handleRoot) // Root landing page
 
 	log.Printf("QR Code Generator starting on port %s", port)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
+}
+
+// handleRoot handles requests to the root path and serves the landing page.
+func handleRoot(w http.ResponseWriter, r *http.Request) {
+	// Serve landing page for root or empty path
+	path := r.URL.Path
+	if path == "/" || path == "" {
+		log.Printf("Root page requested: %s", r.URL.String())
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(landingPageHTML))
+		return
+	}
+	// For any other unhandled path, return 404
+	http.NotFound(w, r)
 }
 
 // GenerateRequest represents the input for QR code generation.
@@ -374,7 +390,7 @@ const landingPageHTML = `<!DOCTYPE html>
             result.classList.remove('show');
 
             try {
-                const response = await fetch('/api/generate', {
+                const response = await fetch('/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ content, size })
