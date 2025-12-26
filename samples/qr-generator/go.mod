@@ -1,4 +1,4 @@
-module github.com/laveeshb/azure-functions-go-worker/samples/qr-generator-custom-handler
+module github.com/laveeshb/azure-functions-go-worker/samples/qr-generator
 
 go 1.21
 

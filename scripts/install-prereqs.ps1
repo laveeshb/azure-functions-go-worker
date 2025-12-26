@@ -222,7 +222,7 @@ if ($allGood) {
     Write-Status "All prerequisites are installed!" "OK"
     Write-Host ""
     Write-Host "Next steps:" -ForegroundColor White
-    Write-Host "  cd samples/hello-world-custom-handler"
+    Write-Host "  cd samples/hello-world/src"
     Write-Host "  go build -o handler.exe ."
     Write-Host "  func start"
 } else {

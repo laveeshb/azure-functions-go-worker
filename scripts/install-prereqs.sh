@@ -196,7 +196,7 @@ if [[ "$ALL_GOOD" == true ]]; then
     status OK "All prerequisites are installed!"
     echo ""
     echo -e "Next steps:"
-    echo "  cd samples/hello-world-custom-handler"
+    echo "  cd samples/hello-world/src"
     echo "  go build -o handler ."
     echo "  func start"
 else

@@ -128,7 +128,7 @@ cd azure-functions-go-worker
 ./scripts/install-prereqs.sh     # Linux/Mac
 
 # Navigate to a sample
-cd samples/hello-world
+cd samples/hello-world/src
 
 # Build the Go binary
 go build -o handler.exe .    # Windows
@@ -144,11 +144,20 @@ Then visit: http://localhost:7071/api/HelloWorld?name=Gopher
 
 ```
 samples/hello-world/
-├── main.go                # Your Go HTTP server
-├── host.json              # Custom Handler configuration
-├── local.settings.json    # Local development settings
-└── HelloWorld/
-    └── function.json      # Function trigger/binding metadata
+├── deploy.ps1             # Windows deployment script
+├── deploy.sh              # Linux/Mac deployment script
+├── README.md              # Sample-specific documentation
+└── src/                   # Function App source code
+    ├── main.go            # Go HTTP server
+    ├── go.mod             # Go module file
+    ├── host.json          # Custom Handler configuration
+    ├── local.settings.json
+    ├── hello/
+    │   └── function.json  # Hello function trigger
+    ├── health/
+    │   └── function.json  # Health check trigger
+    └── echo/
+        └── function.json  # Echo function trigger
 ```
 
 ### Key Files
@@ -194,7 +203,7 @@ samples/hello-world/
 ### Quick Deploy
 
 ```powershell
-cd samples/qr-generator-custom-handler
+cd samples/qr-generator
 .\deploy.ps1 -ResourceGroupName "rg-my-functions" -Location "eastus"
 ```
 

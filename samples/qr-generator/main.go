@@ -1,70 +1,53 @@
-// Package main demonstrates a QR Code Generator Azure Function using Custom Handler.
+// Package main demonstrates a QR Code Generator Azure Function written in Go.
 //
-// This sample uses the Custom Handler approach (HTTP-based) which deploys directly
-// to Azure Functions without requiring container infrastructure.
-//
-// For the gRPC version with full binding support, see ../qr-generator-grpc/
+// This sample shows how to:
+// - Handle HTTP POST requests with JSON payloads
+// - Generate QR codes using a pure Go library
+// - Return binary (PNG) responses
+// - Serve an interactive HTML landing page
 //
 // PRIVACY: This application does not store, log, or transmit any user data.
 // All QR code generation happens in-memory and data is immediately discarded
 // after the response is sent. No cookies, no tracking, no data retention.
 //
 // Endpoints:
-// - GET  /          - Landing page (same as /generate)
-// - GET  /generate  - Interactive web page for QR code generation
-// - POST /generate  - API endpoint to generate a QR code from text/URL
-// - GET  /health    - Health check endpoint
+// - GET  /api/generate - Interactive web page for QR code generation
+// - POST /api/generate - API endpoint to generate a QR code from text/URL
+// - GET  /api/health   - Health check endpoint
 //
 // To run locally:
-// 1. Build: go build -o handler.exe .
+// 1. Build: go build -o handler .
 // 2. Run: func start
-//
-// To deploy to Azure:
-// 1. Run: .\deploy.ps1 -ResourceGroupName "my-rg" -Location "eastus"
 package main
 
 import (
 	"encoding/base64"
 	"encoding/json"
-	"io"
+	"fmt"
 	"log"
-	"net/http"
-	"os"
-	"time"
 
+	"github.com/laveeshb/azure-functions-go-worker/pkg/azfunc"
 	"github.com/skip2/go-qrcode"
 )
 
-func main() {
-	port := os.Getenv("FUNCTIONS_CUSTOMHANDLER_PORT")
-	if port == "" {
-		port = "8080"
+func init() {
+	// Register the QR code generator endpoint
+	if err := azfunc.RegisterHttpFunction("Generate", handleGenerate); err != nil {
+		log.Fatalf("Failed to register Generate: %v", err)
 	}
 
-	// Register function handlers (without /api prefix since routePrefix is empty)
-	http.HandleFunc("/generate", handleGenerate)
-	http.HandleFunc("/health", handleHealth)
-	http.HandleFunc("/", handleRoot) // Root landing page
-
-	log.Printf("QR Code Generator starting on port %s", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+	// Register a simple health check endpoint
+	if err := azfunc.RegisterHttpFunction("Health", handleHealth); err != nil {
+		log.Fatalf("Failed to register Health: %v", err)
 	}
 }
 
-// handleRoot handles requests to the root path and serves the landing page.
-func handleRoot(w http.ResponseWriter, r *http.Request) {
-	// Serve landing page for root or empty path
-	path := r.URL.Path
-	if path == "/" || path == "" {
-		log.Printf("Root page requested: %s", r.URL.String())
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(landingPageHTML))
-		return
+func main() {
+	log.Println("Starting QR Code Generator Azure Functions app...")
+
+	if err := azfunc.Start(); err != nil {
+		log.Fatalf("Worker failed: %v", err)
 	}
-	// For any other unhandled path, return 404
-	http.NotFound(w, r)
 }
 
 // GenerateRequest represents the input for QR code generation.
@@ -95,41 +78,35 @@ type ErrorResponse struct {
 // For POST requests, it generates a QR code and returns JSON.
 //
 // PRIVACY: No user data is stored or logged. All processing is done in-memory.
-func handleGenerate(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Generate function invoked: %s %s", r.Method, r.URL.String())
+func handleGenerate(ctx *azfunc.Context, req *azfunc.HttpRequest) (*azfunc.HttpResponse, error) {
+	ctx.Log("Processing QR code generation request")
 
 	// GET request: serve the interactive landing page
-	if r.Method == "GET" {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(landingPageHTML))
-		return
+	if req.Method == "GET" {
+		return &azfunc.HttpResponse{
+			StatusCode: 200,
+			Headers: map[string]string{
+				"Content-Type": "text/html; charset=utf-8",
+			},
+			Body: landingPageHTML,
+		}, nil
 	}
 
 	// Only accept POST requests for API
-	if r.Method != "POST" {
-		jsonResponse(w, http.StatusMethodNotAllowed, ErrorResponse{Error: "Method not allowed. Use POST."})
-		return
+	if req.Method != "POST" {
+		return jsonResponse(405, ErrorResponse{Error: "Method not allowed. Use POST."}), nil
 	}
 
 	// Parse the request body
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		jsonResponse(w, http.StatusBadRequest, ErrorResponse{Error: "Failed to read request body"})
-		return
-	}
-
 	var genReq GenerateRequest
-	if err := json.Unmarshal(body, &genReq); err != nil {
-		log.Printf("Failed to parse request body: %v", err)
-		jsonResponse(w, http.StatusBadRequest, ErrorResponse{Error: "Invalid JSON payload"})
-		return
+	if err := json.Unmarshal(req.Body, &genReq); err != nil {
+		ctx.Log(fmt.Sprintf("Failed to parse request body: %v", err))
+		return jsonResponse(400, ErrorResponse{Error: "Invalid JSON payload"}), nil
 	}
 
 	// Validate content
 	if genReq.Content == "" {
-		jsonResponse(w, http.StatusBadRequest, ErrorResponse{Error: "Content is required"})
-		return
+		return jsonResponse(400, ErrorResponse{Error: "Content is required"}), nil
 	}
 
 	// Set default size if not provided
@@ -138,19 +115,17 @@ func handleGenerate(w http.ResponseWriter, r *http.Request) {
 		size = 256
 	}
 	if size > 1024 {
-		jsonResponse(w, http.StatusBadRequest, ErrorResponse{Error: "Size cannot exceed 1024 pixels"})
-		return
+		return jsonResponse(400, ErrorResponse{Error: "Size cannot exceed 1024 pixels"}), nil
 	}
 
 	// Generate the QR code
 	png, err := qrcode.Encode(genReq.Content, qrcode.Medium, size)
 	if err != nil {
-		log.Printf("Failed to generate QR code: %v", err)
-		jsonResponse(w, http.StatusInternalServerError, ErrorResponse{Error: "Failed to generate QR code"})
-		return
+		ctx.Log(fmt.Sprintf("Failed to generate QR code: %v", err))
+		return jsonResponse(500, ErrorResponse{Error: "Failed to generate QR code"}), nil
 	}
 
-	log.Printf("Generated QR code for content: %s (size: %d)", genReq.Content, size)
+	ctx.Log(fmt.Sprintf("Generated QR code for content: %s (size: %d)", genReq.Content, size))
 
 	// Return the response with base64-encoded image
 	response := GenerateResponse{
@@ -159,26 +134,29 @@ func handleGenerate(w http.ResponseWriter, r *http.Request) {
 		Size:    size,
 	}
 
-	jsonResponse(w, http.StatusOK, response)
+	return jsonResponse(200, response), nil
 }
 
 // handleHealth returns a simple health check response.
-func handleHealth(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Health check request")
+func handleHealth(ctx *azfunc.Context, req *azfunc.HttpRequest) (*azfunc.HttpResponse, error) {
+	ctx.Log("Health check request")
 
-	jsonResponse(w, http.StatusOK, map[string]interface{}{
-		"status":    "healthy",
-		"service":   "qr-generator",
-		"timestamp": time.Now().UTC().Format(time.RFC3339),
-		"runtime":   "Custom Handler (Go)",
-	})
+	return jsonResponse(200, map[string]string{
+		"status":  "healthy",
+		"service": "qr-generator",
+	}), nil
 }
 
-// jsonResponse writes a JSON response with the given status code and body.
-func jsonResponse(w http.ResponseWriter, statusCode int, body interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	json.NewEncoder(w).Encode(body)
+// jsonResponse creates an HTTP response with JSON content.
+func jsonResponse(statusCode int, body interface{}) *azfunc.HttpResponse {
+	jsonBody, _ := json.Marshal(body)
+	return &azfunc.HttpResponse{
+		StatusCode: statusCode,
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+		Body: string(jsonBody),
+	}
 }
 
 // landingPageHTML is the interactive web page for QR code generation.
@@ -217,15 +195,6 @@ const landingPageHTML = `<!DOCTYPE html>
             color: #666;
             margin-bottom: 24px;
             font-size: 14px;
-        }
-        .badge {
-            display: inline-block;
-            background: #e8f5e9;
-            color: #2e7d32;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            margin-bottom: 16px;
         }
         .form-group {
             margin-bottom: 20px;
@@ -328,7 +297,6 @@ const landingPageHTML = `<!DOCTYPE html>
 <body>
     <div class="container">
         <h1>🔳 QR Code Generator</h1>
-        <span class="badge">☁️ Azure Functions + Custom Handler</span>
         <p class="subtitle">Generate QR codes instantly from any text or URL</p>
 
         <div class="form-group">
@@ -391,7 +359,7 @@ const landingPageHTML = `<!DOCTYPE html>
             result.classList.remove('show');
 
             try {
-                const response = await fetch('/generate', {
+                const response = await fetch('/api/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ content, size })
