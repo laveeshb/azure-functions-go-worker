@@ -53,49 +53,88 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 | [hello-world-custom-handler](samples/hello-world-custom-handler/) | Basic "Hello World" HTTP function |
 | [qr-generator-custom-handler](samples/qr-generator-custom-handler/) | QR code generator with health check endpoint |
 
-## Getting Started
+## Quick Start
+
+Follow these steps in order:
+
+### Step 1: Install Prerequisites
+
+```powershell
+# Windows - run from repo root
+.\scripts\install-prereqs.ps1 -IncludeAzureCLI
+```
+
+```bash
+# Linux/Mac - run from repo root
+chmod +x ./scripts/install-prereqs.sh
+./scripts/install-prereqs.sh --with-az
+```
+
+This checks for and installs:
+- Go 1.21+
+- Azure Functions Core Tools v4
+- Azure CLI (optional, for deployment)
+
+### Step 2: Build
+
+```powershell
+# Navigate to a sample
+cd samples/qr-generator-custom-handler
+
+# Build for local development (Windows)
+go build -o handler.exe .
+```
+
+### Step 3: Run Locally
+
+```powershell
+func start
+```
+
+Then visit: http://localhost:7071/api/health
+
+### Step 4: Deploy to Azure
+
+```powershell
+# Deploy with the included script
+.\deploy.ps1 -ResourceGroupName "rg-my-functions" -Location "eastus"
+```
+
+The deploy script will:
+1. Build the Go binary for Linux
+2. Create Azure resources (resource group, storage account, function app)
+3. Deploy the function app
+
+---
+
+## Detailed Guide
 
 ### Prerequisites
 
 - Go 1.21 or later
 - [Azure Functions Core Tools v4](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local)
 - Azure subscription (for deployment)
-
-**Quick Install (checks and installs missing prerequisites):**
-
-```powershell
-# Windows
-.\scripts\install-prereqs.ps1
-
-# Include Azure CLI
-.\scripts\install-prereqs.ps1 -IncludeAzureCLI
-```
-
-```bash
-# Linux/Mac
-chmod +x ./scripts/install-prereqs.sh
-./scripts/install-prereqs.sh
-
-# Include Azure CLI
-./scripts/install-prereqs.sh --with-az
-```
+- Azure CLI (for deployment)
 
 ### Local Development
 
 ```bash
-# Clone and navigate to a sample
+# Clone the repository
+git clone https://github.com/laveeshb/azure-functions-go-worker.git
+cd azure-functions-go-worker
+
+# Install prerequisites
+.\scripts\install-prereqs.ps1    # Windows
+./scripts/install-prereqs.sh     # Linux/Mac
+
+# Navigate to a sample
 cd samples/hello-world-custom-handler
 
-# Build the Go binary (Linux for Azure, Windows for local)
-# For local Windows development:
-go build -o handler.exe .
+# Build the Go binary
+go build -o handler.exe .    # Windows
+go build -o handler .        # Linux/Mac
 
-# For Azure deployment:
-$env:GOOS = "linux"
-$env:GOARCH = "amd64"
-go build -o handler .
-
-# Run locally with Azure Functions Core Tools
+# Run locally
 func start
 ```
 
