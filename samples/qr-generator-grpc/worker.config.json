@@ -1,0 +1,8 @@
+{
+  "description": {
+    "language": "go",
+    "extensions": [".go"],
+    "defaultExecutablePath": "worker",
+    "defaultWorkerPath": "worker"
+  }
+}

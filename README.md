@@ -62,6 +62,53 @@ Azure Functions Host <──gRPC──> Go Worker <──> Your Go Functions
 
 The worker communicates with the Azure Functions Host via gRPC using the standard [language worker protocol](https://github.com/Azure/azure-functions-language-worker-protobuf).
 
+## Deployment Options
+
+This project supports **two deployment models** to give you flexibility:
+
+| Feature | Custom Handler | gRPC Worker (Container) |
+|---------|----------------|------------------------|
+| **Deploy To** | Azure Functions (PaaS) | Azure Container Apps |
+| **Protocol** | HTTP | gRPC (native) |
+| **Triggers Supported** | HTTP only (practical) | All (HTTP, Queue, Blob, Timer) |
+| **Setup Complexity** | Simple | More involved |
+| **Pricing Model** | Consumption (pay-per-exec) | Container-based (KEDA scale-to-zero) |
+| **Cold Start** | ~500ms-2s | ~2-5s (container pull) |
+| **Dependencies** | None (net/http only) | gRPC, protobuf |
+| **Binding Support** | Manual JSON parsing | Typed bindings |
+
+### Why Can't gRPC Work in Managed Azure Functions?
+
+Azure Functions (PaaS) only supports languages on its **runtime allowlist**:
+
+| Supported Runtimes | Status |
+|-------------------|--------|
+| `dotnet`, `dotnet-isolated` | ✅ Built-in |
+| `node`, `python`, `powershell` | ✅ Built-in |
+| `java` | ✅ Built-in |
+| `custom` | ✅ HTTP Custom Handler |
+| `go` | ❌ **Not on allowlist** |
+
+When you deploy to Azure Functions:
+1. The platform validates `FUNCTIONS_WORKER_RUNTIME` against the allowlist
+2. Setting `FUNCTIONS_WORKER_RUNTIME=go` fails with "unknown runtime"
+3. The gRPC endpoint parameters are only provided to allowlisted workers
+
+**Solution:** We offer two deployment paths:
+
+1. **Custom Handler** → Deploy to Azure Functions (simple, HTTP-only)
+2. **gRPC in Container** → Deploy to Azure Container Apps (full features)
+
+### When to Use Each
+
+| Use Case | Recommendation |
+|----------|----------------|
+| HTTP APIs, webhooks | Custom Handler → Azure Functions |
+| Queue/Blob/Timer triggers | gRPC Worker → Azure Container Apps |
+| Quick prototypes | Custom Handler |
+| Production event-driven apps | gRPC Worker in container |
+| Minimal dependencies | Custom Handler |
+
 ## Getting Started
 
 ### Prerequisites
@@ -99,11 +146,12 @@ Then visit: http://localhost:7071/api/hello?name=Gopher
 
 ## Samples
 
-| Sample | Protocol | Description |
-|--------|----------|-------------|
-| [hello-world-grpc](samples/hello-world-grpc/) | gRPC | **Recommended** - Hello World using the native gRPC worker |
-| [hello-world-custom-handler](samples/hello-world-custom-handler/) | HTTP | Hello World using Custom Handler (for comparison) |
-| [qr-generator](samples/qr-generator/) | gRPC | QR code generator with image output |
+| Sample | Protocol | Deploy To | Description |
+|--------|----------|-----------|-------------|
+| [hello-world-grpc](samples/hello-world-grpc/) | gRPC | Local only | Hello World using the native gRPC worker |
+| [hello-world-custom-handler](samples/hello-world-custom-handler/) | HTTP | Azure Functions | Hello World using Custom Handler |
+| [qr-generator-grpc](samples/qr-generator-grpc/) | gRPC | Azure Container Apps | QR code generator with full gRPC support |
+| [qr-generator-custom-handler](samples/qr-generator-custom-handler/) | HTTP | Azure Functions | QR code generator for Azure deployment |
 
 ## Deploy to Azure
 
@@ -135,9 +183,10 @@ azure-functions-go-worker/
 │   └── bindings/        # Type converters
 ├── proto/               # Protobuf definitions
 ├── samples/
-│   ├── hello-world-grpc/           # Hello World using gRPC worker
-│   ├── hello-world-custom-handler/ # Hello World using Custom Handler
-│   └── qr-generator/               # QR Code generator (gRPC)
+│   ├── hello-world-grpc/              # Hello World (gRPC, local only)
+│   ├── hello-world-custom-handler/    # Hello World (HTTP, Azure Functions)
+│   ├── qr-generator-grpc/             # QR Generator (gRPC, Azure Container Apps)
+│   └── qr-generator-custom-handler/   # QR Generator (HTTP, Azure Functions)
 ├── test/
 │   ├── integration/     # gRPC integration tests
 │   └── functest/        # func.exe E2E tests

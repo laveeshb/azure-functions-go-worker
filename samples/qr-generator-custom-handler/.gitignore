@@ -1,0 +1,7 @@
+# Build artifacts
+handler
+handler.exe
+*.exe
+
+# Local settings (contains connection strings)
+local.settings.json
