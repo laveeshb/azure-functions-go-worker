@@ -24,7 +24,7 @@ A sample Azure Functions app that generates QR codes, built with Go Custom Handl
 
 ## Features
 
-- **Interactive Web UI** - User-friendly landing page at `/api/generate`
+- **Interactive Web UI** - User-friendly landing page at `/generate`
 - Generate QR codes from any text or URL
 - Configurable image size (up to 1024px)
 - Download generated QR codes as PNG
@@ -97,13 +97,13 @@ func start
 
 Open your browser and navigate to:
 ```
-http://localhost:7071/api/generate
+http://localhost:7071/generate
 ```
 
 **API - Generate a QR code:**
 
 ```bash
-curl -X POST http://localhost:7071/api/generate \
+curl -X POST http://localhost:7071/generate \
   -H "Content-Type: application/json" \
   -d '{"content": "https://github.com/laveeshb/azure-functions-go-worker", "size": 256}'
 ```
@@ -111,12 +111,12 @@ curl -X POST http://localhost:7071/api/generate \
 **Health check:**
 
 ```bash
-curl http://localhost:7071/api/health
+curl http://localhost:7071/health
 ```
 
 ## API Reference
 
-### GET /api/generate
+### GET /generate
 
 Serves an interactive web page where users can:
 - Enter text or URL to encode
@@ -124,9 +124,9 @@ Serves an interactive web page where users can:
 - Generate and preview the QR code
 - Download the QR code as PNG
 
-Simply open `http://localhost:7071/api/generate` in your browser.
+Simply open `http://localhost:7071/generate` in your browser.
 
-### POST /api/generate
+### POST /generate
 
 Generate a QR code from text or URL.
 
@@ -160,7 +160,7 @@ Generate a QR code from text or URL.
 | `content` | string | The original content that was encoded |
 | `size`    | int    | The size of the generated image    |
 
-### GET /api/health
+### GET /health
 
 Health check endpoint.
 
@@ -338,15 +338,15 @@ func azure functionapp publish $FUNCTION_APP --no-build --custom
 
 ```bash
 # Health check
-curl https://$FUNCTION_APP.azurewebsites.net/api/health
+curl https://$FUNCTION_APP.azurewebsites.net/health
 
 # Generate a QR code
-curl -X POST https://$FUNCTION_APP.azurewebsites.net/api/generate \
+curl -X POST https://$FUNCTION_APP.azurewebsites.net/generate \
   -H "Content-Type: application/json" \
   -d '{"content": "Hello from Azure!", "size": 256}'
 
 # Or open the web UI in your browser
-echo "https://$FUNCTION_APP.azurewebsites.net/api/generate"
+echo "https://$FUNCTION_APP.azurewebsites.net/generate"
 ```
 
 ### Redeployment
@@ -394,7 +394,7 @@ The API returns a base64-encoded PNG. To display it in HTML:
 Or save it to a file (using jq and base64):
 
 ```bash
-curl -s -X POST http://localhost:7071/api/generate \
+curl -s -X POST http://localhost:7071/generate \
   -H "Content-Type: application/json" \
   -d '{"content": "Hello, World!"}' \
   | jq -r '.image' | base64 -d > qrcode.png
