@@ -61,6 +61,25 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 - [Azure Functions Core Tools v4](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local)
 - Azure subscription (for deployment)
 
+**Quick Install (checks and installs missing prerequisites):**
+
+```powershell
+# Windows
+.\scripts\install-prereqs.ps1
+
+# Include Azure CLI
+.\scripts\install-prereqs.ps1 -IncludeAzureCLI
+```
+
+```bash
+# Linux/Mac
+chmod +x ./scripts/install-prereqs.sh
+./scripts/install-prereqs.sh
+
+# Include Azure CLI
+./scripts/install-prereqs.sh --with-az
+```
+
 ### Local Development
 
 ```bash
