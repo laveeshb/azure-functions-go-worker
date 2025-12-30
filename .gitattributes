@@ -1,0 +1,3 @@
+# Mark scripts as vendored so GitHub language detection focuses on Go code
+*.ps1 linguist-vendored
+*.sh linguist-vendored
